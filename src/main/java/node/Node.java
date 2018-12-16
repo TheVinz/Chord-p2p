@@ -72,14 +72,14 @@ public class Node {
 
     public void updateOthers(){
         for(int i = 0; i<M; i++){
-            Node p = findPredecessor(((this.id-((int) Math.pow(2, i)) + ((int) Math.pow(2, M)))) % ((int) Math.pow(2, M)));
+            Node p = findPredecessor(((this.id-((int) Math.pow(2, i)) + ((int) Math.pow(2, M)))+1) % ((int) Math.pow(2, M)));
             p.updateFingerTable(this, i);
         }
     }
 
     public void updateFingerTable(Node s, int i) {
         if(isInsideInterval(s.getId(), id, fingerTable[i].getNode().getId())
-                || s.getId() == id){
+               /* || s.getId() == id*/){
             fingerTable[i].setNode(s);
             Node p = predecessor;
             p.updateFingerTable(s, i);
