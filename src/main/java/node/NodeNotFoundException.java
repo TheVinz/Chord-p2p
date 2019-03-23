@@ -1,4 +1,4 @@
 package node;
 
-public class NodeNotFoundException {
+public class NodeNotFoundException extends Exception {
 }

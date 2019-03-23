@@ -1,4 +1,10 @@
 package node;
 
-public class Node {
+public interface Node {
+
+
+    Node findSuccessor(int id) throws NodeNotFoundException;
+    Node getPredecessor() throws NodeNotFoundException;
+    Node getSuccessor();
+    int getId();
 }

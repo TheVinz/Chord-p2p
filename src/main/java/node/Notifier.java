@@ -1,4 +1,5 @@
 package node;
 
-public interface Notifier {
+public interface Notifier extends Node{
+    void notifyPredecessor(Node n);
 }

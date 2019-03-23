@@ -1,18 +1,20 @@
-package test;
+package node;
 
-public class TestFingerTableEntry {
+import test.TestNode;
+
+public class FingerTableEntry {
     private int start;
-    private TestNode testNode;
+    private Node node;
 
-    public TestFingerTableEntry(){}
+    public FingerTableEntry(){}
 
-    public TestFingerTableEntry(int start, TestNode testNode){
+    public FingerTableEntry(int start, Node node){
         this.start = start;
-        this.testNode = testNode;
+        this.node = node;
     }
 
-    public void setTestNode(TestNode testNode) {
-        this.testNode = testNode;
+    synchronized public void setNode(Node node) {
+        this.node = node;
     }
 
     public void setStart(int start) {
@@ -23,7 +25,7 @@ public class TestFingerTableEntry {
         return start;
     }
 
-    public TestNode getTestNode() {
-        return testNode;
+    synchronized public Node getNode() {
+        return node;
     }
 }

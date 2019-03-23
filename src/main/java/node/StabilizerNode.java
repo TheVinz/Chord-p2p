@@ -1,18 +1,47 @@
 package node;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+import static java.lang.Math.pow;
 import static utils.Util.M;
 import static utils.Util.isInsideInterval;
 
-public class LocalNode extends Node {
+public class StabilizerNode extends LocalNode implements Notifier{
 
-    private FingerTableEntry[] fingerTable;
+    private int next = 0;
+    private boolean newEntry = true;
 
-    protected LocalNode(int id) {
+    public StabilizerNode(int id) {
         super(id);
+        TimerTask stabilizeTask = new TimerTask() {
+            @Override
+            public void run() {
+                stabilize();
+            }
+        };
+        TimerTask fixFingerTask = new TimerTask() {
+            @Override
+            public void run() {
+                fixFingers();
+                if(newEntry){
+                    while(next != 0){
+                        fixFingers();
+                    }
+                    newEntry = false;
+                }
+            }
+        };
+        Timer stabilizeTimer = new Timer("Stabilizer");
+        stabilizeTimer.scheduleAtFixedRate(stabilizeTask, 500, 250);
+        Timer fixFingerTimer = new Timer("FixFinger");
+        fixFingerTimer.scheduleAtFixedRate(fixFingerTask, 800, 250);
+
     }
 
-    public Node getSuccessor(){
-        return fingerTable[0].getRemoteNode();
+    public void join(Node n) throws NodeNotFoundException {
+        setPredecessor(null);
+        setSuccessor(n.findSuccessor(this.getId()));
     }
 
     public Node findSuccessor(int id) throws NodeNotFoundException{
@@ -23,10 +52,37 @@ public class LocalNode extends Node {
         return getSuccessor();
     }
 
-    public Node closestPrecedingFinger(int id) {
-        for(int i=M-1; i>=0; i--)
-            if(isInsideInterval(fingerTable[i].getRemoteNode().getId(),  this.getId(), id))
-                return fingerTable[i].getRemoteNode();
-        return this;
+    public void stabilize(){
+        try {
+            Node x = getSuccessor().getPredecessor();
+            if(isInsideInterval(x.getId(), this.getId(), this.getSuccessor().getId()))
+                setSuccessor(x);
+            ((Notifier) getSuccessor()).notifyPredecessor(this);
+        } catch (NodeNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
+
+    public void notifyPredecessor(Node n){
+        if(getPredecessor() == null || isInsideInterval(n.getId(), getPredecessor().getId(), this.getId()))
+            setPredecessor(n);
+
+    }
+
+    public void fixFingers(){
+        next = next + 1;
+        if(next >= M)
+            next = 0;
+        try {
+            this.setFingerTableEntryNode(next, findSuccessor(this.getId()+(int)pow(2,next)));
+        } catch (NodeNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void checkPredecessor(){
+        //
+    }
+
 }

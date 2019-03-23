@@ -1,94 +1,66 @@
 package test;
 
 import com.sun.istack.internal.NotNull;
+import node.FingerTableEntry;
+import node.LocalNode;
 import node.Node;
+import node.NodeNotFoundException;
 
 import static utils.Util.*;
 
-public class TestNode extends Node {
+public class TestNode extends LocalNode {
 
-    public TestFingerTableEntry[] fingerTable;
-    private TestNode predecessor;
+
 
     public TestNode(int id) {
         super(id);
-        fingerTable = new TestFingerTableEntry[M];
-        for(int i=0; i<M; i++){
-            fingerTable[i] = new TestFingerTableEntry();
-            fingerTable[i].setStart(((this.getId() + ((int) Math.pow(2,i))) % ((int) Math.pow(2, M))));
-        }
     }
 
 
-    public TestNode findSuccessor(int id){
-        TestNode n = findPredecessor(id);
+    public Node findSuccessor(int id){
+        LocalNode n = (LocalNode) findPredecessor(id);
         return n.getSuccessor();
     }
 
-    public TestNode findPredecessor(int id){
-        TestNode n = this;
+    public Node findPredecessor(int id){
+        LocalNode n = this;
         while(!isInsideInterval(id, n.getId(), n.getSuccessor().getId()) && id != n.getSuccessor().getId())
-            n = n.closestPrecedingFinger(id);
+            n = (LocalNode) n.closestPrecedingFinger(id);
         return n;
     }
 
-    public TestNode closestPrecedingFinger(int id) {
-        for(int i=M-1; i>=0; i--)
-            if(isInsideInterval(fingerTable[i].getTestNode().getId(),  this.getId(), id))
-                return fingerTable[i].getTestNode();
-        return this;
-    }
-
-    public TestNode getSuccessor(){
-        return fingerTable[0].getTestNode();
-    }
-
-    public void join(@NotNull TestNode n){
+    public void join(@NotNull Node n) throws NodeNotFoundException{
         initFingerTable(n);
         updateOthers();
     }
 
-    public void create(){
-        for(TestFingerTableEntry f : fingerTable)
-            f.setTestNode(this);
-        predecessor = this;
-    }
-
-    public void initFingerTable(TestNode n){
-        fingerTable[0].setTestNode(n.findSuccessor(fingerTable[0].getStart()));
-        predecessor = getSuccessor().getPredecessor();
-        getSuccessor().setPredecessor(this);
+    public void initFingerTable(Node n) throws NodeNotFoundException {
+        this.setFingerTableEntryNode(0, n.findSuccessor(this.getFingerTableEntry(0).getStart()));
+        setPredecessor(((LocalNode) getSuccessor()).getPredecessor());
+        ((LocalNode) getSuccessor()).setPredecessor(this);
         for(int i=1; i<M; i++){
-            if(isInsideInterval(fingerTable[i].getStart(), this.getId(), fingerTable[i-1].getTestNode().getId())
-                    || fingerTable[i].getStart() == this.getId())
-                fingerTable[i].setTestNode(fingerTable[i-1].getTestNode());
+            if(isInsideInterval(this.getFingerTableEntry(i).getStart(), this.getId(), this.getFingerTableEntry(i-1).getNode().getId())
+                    || this.getFingerTableEntry(i).getStart() == this.getId())
+                this.setFingerTableEntryNode(i, this.getFingerTableEntry(i-1).getNode());
             else
-                fingerTable[i].setTestNode(n.findSuccessor(fingerTable[i].getStart()));
+                this.setFingerTableEntryNode(i, n.findSuccessor(this.getFingerTableEntry(i).getStart()));
         }
     }
 
     public void updateOthers(){
         for(int i = 0; i<M; i++){
-            TestNode p = findPredecessor(((this.getId()-((int) Math.pow(2, i)) + ((int) Math.pow(2, M)))+1) % ((int) Math.pow(2, M)));
+            TestNode p = (TestNode) findPredecessor(((this.getId()-((int) Math.pow(2, i)) + ((int) Math.pow(2, M)))+1) % ((int) Math.pow(2, M)));
             p.updateFingerTable(this, i);
         }
     }
 
-    public void updateFingerTable(TestNode s, int i) {
-        if(isInsideInterval(s.getId(), this.getId(), fingerTable[i].getTestNode().getId())
+    public void updateFingerTable(Node s, int i) {
+        if(isInsideInterval(s.getId(), this.getId(), this.getFingerTableEntry(i).getNode().getId())
                /* || s.getId() == id*/){
-            fingerTable[i].setTestNode(s);
-            TestNode p = predecessor;
+            this.setFingerTableEntryNode(i, s);
+            TestNode p = (TestNode) getPredecessor();
             p.updateFingerTable(s, i);
         }
     }
 
-
-    public TestNode getPredecessor() {
-        return predecessor;
-    }
-
-    public void setPredecessor(TestNode n){
-        this.predecessor = n;
-    }
 }
