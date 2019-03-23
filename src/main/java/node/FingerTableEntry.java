@@ -1,18 +1,18 @@
-package node;
+package test;
 
-public class FingerTableEntry {
+public class TestFingerTableEntry {
     private int start;
-    private Node node;
+    private TestNode testNode;
 
-    public FingerTableEntry(){}
+    public TestFingerTableEntry(){}
 
-    public  FingerTableEntry(int start, Node node){
+    public TestFingerTableEntry(int start, TestNode testNode){
         this.start = start;
-        this.node=node;
+        this.testNode = testNode;
     }
 
-    public void setNode(Node node) {
-        this.node = node;
+    public void setTestNode(TestNode testNode) {
+        this.testNode = testNode;
     }
 
     public void setStart(int start) {
@@ -23,7 +23,7 @@ public class FingerTableEntry {
         return start;
     }
 
-    public Node getNode() {
-        return node;
+    public TestNode getTestNode() {
+        return testNode;
     }
 }
