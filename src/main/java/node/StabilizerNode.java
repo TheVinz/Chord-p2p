@@ -1,5 +1,8 @@
 package node;
 
+import node.exceptions.FingerTableEmptyException;
+import node.exceptions.NodeNotFoundException;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -14,6 +17,7 @@ public class StabilizerNode extends LocalNode implements Notifier{
 
     public StabilizerNode(int id) {
         super(id);
+
         TimerTask stabilizeTask = new TimerTask() {
             @Override
             public void run() {
@@ -39,12 +43,12 @@ public class StabilizerNode extends LocalNode implements Notifier{
 
     }
 
-    public void join(Node n) throws NodeNotFoundException {
+    public void join(Node n) throws NodeNotFoundException, FingerTableEmptyException {
         setPredecessor(null);
         setSuccessor(n.findSuccessor(this.getId()));
     }
 
-    public Node findSuccessor(int id) throws NodeNotFoundException{
+    public Node findSuccessor(int id) throws NodeNotFoundException, FingerTableEmptyException {
         if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
             Node temp = closestPrecedingFinger(id);
             return temp.findSuccessor(id);
@@ -76,7 +80,13 @@ public class StabilizerNode extends LocalNode implements Notifier{
             next = 0;
         try {
             this.setFingerTableEntryNode(next, findSuccessor(this.getId()+(int)pow(2,next)));
+            /*
+                Even if fixFingers cannot reach the node, will try it later by itself
+                when `next` will have again the same value
+             */
         } catch (NodeNotFoundException e) {
+            e.printStackTrace();
+        } catch (FingerTableEmptyException e) {
             e.printStackTrace();
         }
     }

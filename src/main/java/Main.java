@@ -1,7 +1,7 @@
 import node.Node;
-import node.NodeNotFoundException;
+import node.exceptions.FingerTableEmptyException;
+import node.exceptions.NodeNotFoundException;
 import node.StabilizerNode;
-import test.TestNode;
 
 import java.util.Random;
 
@@ -59,7 +59,15 @@ public class Main {
             int id = new Random().nextInt(32);
             if(booleans[id]) {
                 StabilizerNode n = new StabilizerNode(id);
-                n.join(source);
+                try {
+                    n.join(source);
+
+                } catch (FingerTableEmptyException e) {
+                    e.printStackTrace();
+                    System.err.println("Sorry, join failed.\nTry again later.\nExiting..");
+                    System.exit(-1);
+                    // TODO Try again after x seconds.
+                }
                 System.out.println(id + " created");
                 booleans[id] = false;
             }

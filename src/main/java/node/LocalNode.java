@@ -1,5 +1,8 @@
 package node;
 
+import node.exceptions.FingerTableEmptyException;
+import node.exceptions.NodeNotFoundException;
+
 import static utils.Util.M;
 import static utils.Util.isInsideInterval;
 
@@ -14,20 +17,29 @@ public abstract class LocalNode implements Node{
         fingerTable = new FingerTableEntry[M];
         for(int i=0; i<M; i++){
             fingerTable[i] = new FingerTableEntry();
+            fingerTable[i].setNode(null);
             fingerTable[i].setStart(((this.getId() + ((int) Math.pow(2,i))) % ((int) Math.pow(2, M))));
         }
     }
 
-    synchronized public FingerTableEntry getFingerTableEntry(int index){
+    public FingerTableEntry getFingerTableEntry(int index){
         return fingerTable[index];
     }
 
-    synchronized public void setFingerTableEntryNode(int index, Node n){
+    public void setFingerTableEntryNode(int index, Node n){
         fingerTable[index].setNode(n);
     }
 
-    public Node getSuccessor(){
-        return fingerTable[0].getNode();
+    public Node getSuccessor() {
+        try {
+            return fingerTable[0].getNode();
+        } catch (FingerTableEmptyException e) {
+            /*
+               fingerTable[0] will never throw because is the actual successor,
+               that it is initialized by the join method
+             */
+            return null;
+        }
     }
 
     public void setSuccessor(Node n){
@@ -37,9 +49,14 @@ public abstract class LocalNode implements Node{
 
 
     public Node closestPrecedingFinger(int id) {
-        for(int i=M-1; i>=0; i--)
-            if(isInsideInterval(fingerTable[i].getNode().getId(),  this.getId(), id))
-                return fingerTable[i].getNode();
+        for(int i=M-1; i>=0; i--) {
+            try {
+                if(isInsideInterval(fingerTable[i].getNode().getId(),  this.getId(), id))
+                    return fingerTable[i].getNode();
+            } catch (FingerTableEmptyException e) {
+                // TODO log exception
+            }
+        }
         return this;
     }
 
@@ -57,7 +74,9 @@ public abstract class LocalNode implements Node{
         this.predecessor = predecessor;
     }
 
-    abstract public void join(Node n) throws NodeNotFoundException;
+    abstract public void join(Node n) throws NodeNotFoundException, FingerTableEmptyException;
+
+
 
     public int getId() {
         return id;

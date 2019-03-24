@@ -1,5 +1,7 @@
 package node;
 
+import node.exceptions.NodeNotFoundException;
+
 public class RemoteNode implements Notifier{
 
     private int id;
@@ -9,7 +11,7 @@ public class RemoteNode implements Notifier{
         this.id = id;
     }
 
-    public Node findSuccessor(int id) throws NodeNotFoundException{
+    public Node findSuccessor(int id) throws NodeNotFoundException {
         return null;
     }
 

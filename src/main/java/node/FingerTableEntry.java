@@ -1,5 +1,6 @@
 package node;
 
+import node.exceptions.FingerTableEmptyException;
 import test.TestNode;
 
 public class FingerTableEntry {
@@ -25,7 +26,9 @@ public class FingerTableEntry {
         return start;
     }
 
-    synchronized public Node getNode() {
+    synchronized public Node getNode() throws FingerTableEmptyException {
+        if(node == null)
+            throw new FingerTableEmptyException();
         return node;
     }
 }
