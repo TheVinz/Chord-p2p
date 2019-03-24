@@ -79,7 +79,7 @@ public class StabilizerNode extends LocalNode implements Notifier{
         if(next >= M)
             next = 0;
         try {
-            this.setFingerTableEntryNode(next, findSuccessor(this.getId()+(int)pow(2,next)));
+            this.setFingerTableEntryNode(next, findSuccessor((this.getId()+(int)pow(2,next))%((int)pow(2,M))));
             /*
                 Even if fixFingers cannot reach the node, will try it later by itself
                 when `next` will have again the same value

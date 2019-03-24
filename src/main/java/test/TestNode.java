@@ -39,11 +39,15 @@ public class TestNode extends LocalNode {
         setPredecessor(((LocalNode) getSuccessor()).getPredecessor());
         ((LocalNode) getSuccessor()).setPredecessor(this);
         for(int i=1; i<M; i++){
-            if(isInsideInterval(this.getFingerTableEntry(i).getStart(), this.getId(), this.getFingerTableEntry(i-1).getNode().getId())
-                    || this.getFingerTableEntry(i).getStart() == this.getId())
+            if(this.getId() != this.getFingerTableEntry(i-1).getNode().getId() && (isInsideInterval(this.getFingerTableEntry(i).getStart(), this.getId(), this.getFingerTableEntry(i-1).getNode().getId())
+                    || this.getFingerTableEntry(i).getStart() == this.getId()))
                 this.setFingerTableEntryNode(i, this.getFingerTableEntry(i-1).getNode());
-            else
-                this.setFingerTableEntryNode(i, n.findSuccessor(this.getFingerTableEntry(i).getStart()));
+            else{
+                Node temp = n.findSuccessor(this.getFingerTableEntry(i).getStart());
+                if(this.getFingerTableEntry(i).getStart() != temp.getId() && isInsideInterval(this.getId(), this.getFingerTableEntry(i).getStart(), temp.getId()))
+                    temp = this;
+                this.setFingerTableEntryNode(i, temp);
+            }
         }
     }
 
@@ -55,8 +59,7 @@ public class TestNode extends LocalNode {
     }
 
     public void updateFingerTable(Node s, int i) throws FingerTableEmptyException {
-        if(isInsideInterval(s.getId(), this.getId(), this.getFingerTableEntry(i).getNode().getId())
-               /* || s.getId() == id*/){
+        if(isInsideInterval(s.getId(), this.getId(), this.getFingerTableEntry(i).getNode().getId())){
             this.setFingerTableEntryNode(i, s);
             TestNode p = (TestNode) getPredecessor();
             p.updateFingerTable(s, i);
