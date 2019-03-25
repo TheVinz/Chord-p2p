@@ -10,6 +10,11 @@ import static java.lang.Math.pow;
 import static utils.Util.M;
 import static utils.Util.isInsideInterval;
 
+/**
+ * This concrete implementation of {@link LocalNode} add the stabilization methods, as described in the paper.
+ * The stabilization methods have no meaning in appearing also in {@link RemoteNode}, since these routines are running
+ * locally on the instance to which the remote node is pointing. Hence on the {@link StabilizerNode}.
+ */
 public class StabilizerNode extends LocalNode implements Notifier{
 
     private int next = 0;

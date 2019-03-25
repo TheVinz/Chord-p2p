@@ -2,6 +2,11 @@ package node;
 
 import node.exceptions.NodeNotFoundException;
 
+
+/**
+ * This class is the abstraction of a node that lives in a remote machine.
+ * So each method will resolve remotely on the other machine and eventually returns to the local client.
+ */
 public class RemoteNode implements Notifier{
 
     private int id;
