@@ -29,10 +29,10 @@ public class Tester {
         TestNode testSource = new TestNode(0);
         testSource.create();
         testNodes.add(testSource);
-        Random rnd = new Random(12);
-        for(int i=0; i<100; i++){
+        Random rnd = new Random(9);
+        for(int i=0; i<10; i++){
             try {
-                sleep(2000);
+                sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

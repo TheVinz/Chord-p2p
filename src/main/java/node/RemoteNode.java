@@ -11,7 +11,7 @@ public class RemoteNode implements Notifier{
         this.id = id;
     }
 
-    public Node findSuccessor(int id) throws NodeNotFoundException {
+    public Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException {
         return null;
     }
 

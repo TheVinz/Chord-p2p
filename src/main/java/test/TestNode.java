@@ -1,6 +1,7 @@
 package test;
 
 import com.sun.istack.internal.NotNull;
+import node.CallTracker;
 import node.LocalNode;
 import node.Node;
 import node.exceptions.FingerTableEmptyException;
@@ -17,7 +18,7 @@ public class TestNode extends LocalNode {
     }
 
 
-    public Node findSuccessor(int id) throws FingerTableEmptyException {
+    public Node findSuccessor(int id, CallTracker callTracker) throws FingerTableEmptyException {
         LocalNode n = (LocalNode) findPredecessor(id);
         return n.getSuccessor();
     }
@@ -35,7 +36,7 @@ public class TestNode extends LocalNode {
     }
 
     public void initFingerTable(Node n) throws NodeNotFoundException, FingerTableEmptyException {
-        this.setFingerTableEntryNode(0, n.findSuccessor(this.getFingerTableEntry(0).getStart()));
+        this.setFingerTableEntryNode(0, n.findSuccessor(this.getFingerTableEntry(0).getStart(),null));
         setPredecessor(((LocalNode) getSuccessor()).getPredecessor());
         ((LocalNode) getSuccessor()).setPredecessor(this);
         for(int i=1; i<M; i++){
@@ -43,7 +44,7 @@ public class TestNode extends LocalNode {
                     || this.getFingerTableEntry(i).getStart() == this.getId()))
                 this.setFingerTableEntryNode(i, this.getFingerTableEntry(i-1).getNode());
             else{
-                Node temp = n.findSuccessor(this.getFingerTableEntry(i).getStart());
+                Node temp = n.findSuccessor(this.getFingerTableEntry(i).getStart(), null);
                 if(this.getFingerTableEntry(i).getStart() != temp.getId() && isInsideInterval(this.getId(), this.getFingerTableEntry(i).getStart(), temp.getId()))
                     temp = this;
                 this.setFingerTableEntryNode(i, temp);

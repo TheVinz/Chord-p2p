@@ -45,13 +45,18 @@ public class StabilizerNode extends LocalNode implements Notifier{
 
     public void join(Node n) throws NodeNotFoundException, FingerTableEmptyException {
         setPredecessor(null);
-        setSuccessor(n.findSuccessor(this.getId()));
+        setSuccessor(n.findSuccessor(this.getId(), new CallTracker(this.getId(), 0)));
     }
 
-    public Node findSuccessor(int id) throws NodeNotFoundException, FingerTableEmptyException {
+    public Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException {
+        if(this.getId() == callTracker.getCaller() && callTracker.getSteps() > 0){
+            System.err.println("Deadlock! The caller is node: "+ callTracker.getCaller());
+            throw new NodeNotFoundException();
+        }
         if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
             Node temp = closestPrecedingFinger(id);
-            return temp.findSuccessor(id);
+            callTracker.addStep();
+            return temp.findSuccessor(id, callTracker);
         }
         return getSuccessor();
     }
@@ -63,7 +68,7 @@ public class StabilizerNode extends LocalNode implements Notifier{
                 setSuccessor(x);
             ((Notifier) getSuccessor()).notifyPredecessor(this);
         } catch (NodeNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
     }
@@ -79,13 +84,13 @@ public class StabilizerNode extends LocalNode implements Notifier{
         if(next >= M)
             next = 0;
         try {
-            this.setFingerTableEntryNode(next, findSuccessor((this.getId()+(int)pow(2,next))%((int)pow(2,M))));
+            this.setFingerTableEntryNode(next, findSuccessor((this.getId()+(int)pow(2,next))%((int)pow(2,M)), new CallTracker(this.getId(), 0)));
             /*
                 Even if fixFingers cannot reach the node, will try it later by itself
                 when `next` will have again the same value
              */
         } catch (NodeNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         } catch (FingerTableEmptyException e) {
             e.printStackTrace();
         }
