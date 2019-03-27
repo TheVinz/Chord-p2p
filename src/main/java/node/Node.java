@@ -1,5 +1,6 @@
 package node;
 
+import network.exeptions.NetworkFailureException;
 import node.exceptions.FingerTableEmptyException;
 import node.exceptions.NodeNotFoundException;
 
@@ -22,7 +23,7 @@ public interface Node {
      *                               Alternatively, when there is a cycle and the initial callee is encountered.
      * @throws FingerTableEmptyException when the finger table entry that captures the param id is not initialised yet.
      */
-    Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException;
+    Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException;
 
     /**
      * Gets the node whose id is smaller then the current node.
@@ -32,17 +33,29 @@ public interface Node {
      * @return The reference of the node that precedes this one.
      * @throws NodeNotFoundException when this node is not available to be contacted.
      */
-    Node getPredecessor() throws NodeNotFoundException;
+    Node getPredecessor() throws NodeNotFoundException, NetworkFailureException;
 
     /**
      * Gets the immediate successor node in the ring.
      * @return the successor reference.
      */
-    Node getSuccessor(); // TODO should throw NodeNotFoundException as well, since this node might be not available
+    Node getSuccessor() throws NetworkFailureException; // TODO should throw NodeNotFoundException as well, since this node might be not available
 
     /**
      * Gets the identifier of this node.
      * @return this node's identifier.
      */
     int getId();
+
+    /**
+     * Gets the port of the node
+     * @return the node's socket port
+     */
+    int getPort();
+
+    /**
+     * Gets the ip address of the node
+     * @return the node's IP address
+     */
+    String getIp();
 }

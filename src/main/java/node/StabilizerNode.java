@@ -1,5 +1,6 @@
 package node;
 
+import network.remoteNode.RemoteNode;
 import node.exceptions.FingerTableEmptyException;
 import node.exceptions.NodeNotFoundException;
 
