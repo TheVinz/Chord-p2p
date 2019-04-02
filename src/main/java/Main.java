@@ -1,20 +1,15 @@
-import node.Node;
+import network.exeptions.NetworkFailureException;
 import node.exceptions.FingerTableEmptyException;
 import node.exceptions.NodeNotFoundException;
-import node.StabilizerNode;
 import test.Tester;
 
-import java.util.Random;
-
-import static java.lang.Thread.sleep;
-
 public class Main {
-    public static void main(String[] args) throws NodeNotFoundException {
+    public static void main(String[] args) {
 
         Tester tester = new Tester();
         try {
             tester.test();
-        } catch (FingerTableEmptyException e) {
+        } catch (FingerTableEmptyException | NodeNotFoundException | NetworkFailureException e) {
             e.printStackTrace();
         }
 

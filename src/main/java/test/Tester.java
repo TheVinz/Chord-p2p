@@ -1,5 +1,6 @@
 package test;
 
+import network.exeptions.NetworkFailureException;
 import node.Node;
 import node.StabilizerNode;
 import node.exceptions.FingerTableEmptyException;
@@ -11,24 +12,41 @@ import java.util.Random;
 
 import static java.lang.Thread.sleep;
 import static utils.Util.M;
+import static utils.Util.createDefaultStabilizerNode;
 
 public class Tester {
 
+    private static final long[] delays = new long[]{500, 800};
+    private static final long[] periods = new long[]{250, 250};
 
-    public void test() throws FingerTableEmptyException {
-        List<Node> stabilizerNodes = new ArrayList<Node>();
-        List<Node> testNodes = new ArrayList<Node>();
+    private List<Node> stabilizerNodes = new ArrayList<>();
+    private List<Node> testNodes = new ArrayList<>();
+    private StabilizerNode stabilizerSource;
+    private TestNode testSource;
+
+    public void test() throws FingerTableEmptyException, NodeNotFoundException, NetworkFailureException {
+        setup();
+        checkSuccessor(stabilizerSource, testSource);
+        checkFingerTable(stabilizerNodes, testNodes);
+        tearDown();
+    }
+
+    private void setup() {
         int n = (int) Math.pow(2,M);
         boolean[] booleans = new boolean[n];
         for(int i=0; i<booleans.length; i++)
             booleans[i]=true;
         booleans[0] = false;
-        StabilizerNode stabilizerSource = new StabilizerNode(0);
+
+        stabilizerSource = createDefaultStabilizerNode(0, delays, periods);
         stabilizerSource.create();
+        stabilizerSource.start();
         stabilizerNodes.add(stabilizerSource);
-        TestNode testSource = new TestNode(0);
+
+        testSource = new TestNode(0);
         testSource.create();
         testNodes.add(testSource);
+
         Random rnd = new Random(9);
         for(int i=0; i<10; i++){
             try {
@@ -38,20 +56,16 @@ public class Tester {
             }
             int id = rnd.nextInt(n);
             if(booleans[id]) {
-                Node stabilizerNode = new StabilizerNode(id);
+                StabilizerNode stabilizerNode = createDefaultStabilizerNode(id, delays, periods);
                 stabilizerNodes.add(stabilizerNode);
-                Node testNode = new TestNode(id);
+                TestNode testNode = new TestNode(id);
                 testNodes.add(testNode);
                 try {
-                    ((StabilizerNode) stabilizerNode).join(stabilizerSource);
-                    ((TestNode) testNode).join(testSource);
+                    stabilizerNode.join(stabilizerSource);
+                    stabilizerNode.start();
+                    testNode.join(testSource);
 
-                } catch (FingerTableEmptyException e) {
-                    e.printStackTrace();
-                    System.err.println("Sorry, join failed.\nTry again later.\nExiting..");
-                    System.exit(-1);
-                    // TODO Try again after x seconds.
-                } catch (NodeNotFoundException e) {
+                } catch (FingerTableEmptyException | NodeNotFoundException | NetworkFailureException e) {
                     e.printStackTrace();
                     System.err.println("Sorry, join failed.\nTry again later.\nExiting..");
                     System.exit(-1);
@@ -66,8 +80,11 @@ public class Tester {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        checkSuccessor(stabilizerSource, testSource);
-        checkFingerTable(stabilizerNodes, testNodes);
+    }
+
+    private void tearDown() {
+        for (Node node : stabilizerNodes)
+            ((StabilizerNode)node).stop();
     }
 
     public void checkFingerTable(List<Node> stabilizerNodes, List<Node> testNodes) throws FingerTableEmptyException {
@@ -82,7 +99,7 @@ public class Tester {
         System.out.println("checkFingerTable is finished!");
     }
 
-    public void checkSuccessor(Node stabilizerSource, Node testSource){
+    public void checkSuccessor(Node stabilizerSource, Node testSource) throws NodeNotFoundException, NetworkFailureException {
         Node stabilizerNode = stabilizerSource.getSuccessor();
         Node testNode = testSource.getSuccessor();
         int cont = 0;

@@ -1,8 +1,10 @@
 package node;
 
+import network.exeptions.NetworkFailureException;
 import node.exceptions.FingerTableEmptyException;
 import node.exceptions.NodeNotFoundException;
 
+import static java.lang.Math.pow;
 import static utils.Util.M;
 import static utils.Util.isInsideInterval;
 
@@ -11,10 +13,11 @@ import static utils.Util.isInsideInterval;
  * The local node is fully operative either by creating a ring (initially including only itself),
  * or by joining an existing node, The existing node can live on the same machine or remotely.
  */
-public abstract class LocalNode implements Node{
+public class LocalNode implements Node{
 
     private FingerTableEntry[] fingerTable;
     private Node predecessor;
+    private int next = 0;
     private int id;
 
     /**
@@ -35,14 +38,37 @@ public abstract class LocalNode implements Node{
         }
     }
 
-    public FingerTableEntry getFingerTableEntry(int index){
-        return fingerTable[index];
+    /*
+     * Node's methods overrides
+     */
+
+    @Override
+    public Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
+        if(this.getId() == callTracker.getCaller() && callTracker.getSteps() > 0){
+            System.err.println("Deadlock! The caller is node: "+ callTracker.getCaller());
+            throw new NodeNotFoundException();
+        }
+        if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
+            Node temp = closestPrecedingFinger(id);
+            callTracker.addStep();
+            return temp.findSuccessor(id, callTracker);
+        }
+        return getSuccessor();
     }
 
-    public void setFingerTableEntryNode(int index, Node n){
-        fingerTable[index].setNode(n);
+    public Node closestPrecedingFinger(int id) {
+        for(int i=M-1; i>=0; i--) {
+            try {
+                if(isInsideInterval(fingerTable[i].getNode().getId(),  this.getId(), id))
+                    return fingerTable[i].getNode();
+            } catch (FingerTableEmptyException e) {
+                // TODO log exception
+            }
+        }
+        return this;
     }
 
+    @Override
     public Node getSuccessor() {
         try {
             return fingerTable[0].getNode();
@@ -57,31 +83,9 @@ public abstract class LocalNode implements Node{
 
     public void setSuccessor(Node n){
         fingerTable[0].setNode(n);
-
     }
 
-
-    public Node closestPrecedingFinger(int id) {
-        for(int i=M-1; i>=0; i--) {
-            try {
-                if(isInsideInterval(fingerTable[i].getNode().getId(),  this.getId(), id))
-                    return fingerTable[i].getNode();
-            } catch (FingerTableEmptyException e) {
-                // TODO log exception
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Creates a new Chord ring, and add this node to it. All the fingers are initialised to point to this node.
-     */
-    public void create(){
-        for(FingerTableEntry f : fingerTable)
-            f.setNode(this);
-        predecessor = this;
-    }
-
+    @Override
     synchronized public Node getPredecessor() {
         return predecessor;
     }
@@ -90,15 +94,99 @@ public abstract class LocalNode implements Node{
         this.predecessor = predecessor;
     }
 
+    @Override
+    public void notifyPredecessor(Node n) {
+        // TODO getPredecessor() would never be null since we initialize it as this
+        if(getPredecessor() == null || isInsideInterval(n.getId(), getPredecessor().getId(), this.getId()))
+            setPredecessor(n);
+    }
+
+    /*
+     * Stabilization procedures
+     */
+
+    public void stabilize(){
+        try {
+            Node x = getSuccessor().getPredecessor();
+            if(isInsideInterval(x.getId(), this.getId(), this.getSuccessor().getId()))
+                setSuccessor(x);
+            getSuccessor().notifyPredecessor(this);
+        } catch (NodeNotFoundException | NetworkFailureException e) {
+            //e.printStackTrace();
+        }
+    }
+
+    public void fixFingers(){
+        next = next + 1;
+        if(next >= M)
+            next = 0;
+        try {
+            this.setFingerTableEntryNode(next,
+                    findSuccessor((this.getId()+(int)pow(2,next))%((int)pow(2,M)),
+                            new CallTracker(this.getId(), 0)));
+            /*
+             *  Even if fixFingers cannot reach the node, will try it later by itself
+             *  when `next` will have again the same value
+             */
+        } catch (NodeNotFoundException | NetworkFailureException e) {
+            //e.printStackTrace();
+        } catch (FingerTableEmptyException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void checkPredecessor(){
+        //
+    }
+
+    /*
+     * Overlay network construction, join or create one
+     */
+
+    /**
+     * Creates a new Chord ring, and add this node to it. All the fingers are initialised to point to this node.
+     */
+    public void create(){
+        for(FingerTableEntry f : fingerTable)
+            f.setNode(this);
+        setPredecessor(this); // TODO: in the Paper is null
+    }
+
     /**
      * Joins the Chord ring which n belongs to.
+     *
      * @param n the target node to join.
-     * @throws NodeNotFoundException when n is not available
+     * @throws NodeNotFoundException     when n is not available
      * @throws FingerTableEmptyException when n's finger table is not totally initialised yet.
      */
-    abstract public void join(Node n) throws NodeNotFoundException, FingerTableEmptyException;
+    public void join(Node n) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
+        setPredecessor(this);
+        setSuccessor(n.findSuccessor(this.getId(), new CallTracker(this.getId(), 0)));
+    }
+
+    /*
+     * Getter and Setters
+     */
+
+    public FingerTableEntry getFingerTableEntry(int index){
+        return fingerTable[index];
+    }
+
+    public void setFingerTableEntryNode(int index, Node n){
+        fingerTable[index].setNode(n);
+    }
 
     public int getId() {
         return id;
+    }
+
+    @Override
+    public int getPort() {
+        return 0;
+    }
+
+    @Override
+    public String getIp() {
+        return null;
     }
 }

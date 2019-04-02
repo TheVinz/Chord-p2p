@@ -8,9 +8,9 @@ import node.exceptions.NodeNotFoundException;
  * Main abstraction of the concept of node as part of a Chord ring.
  * This description models the fact that nodes might be not available, as well as
  * the finger table not completely initialised yet.
+ * So every time this node is not available, this might be modeled using the {@link NodeNotFoundException}
  */
 public interface Node {
-
 
     /**
      * It finds the node whose id is immediate succeeding the resource {@code id} in the chord ring.
@@ -38,8 +38,17 @@ public interface Node {
     /**
      * Gets the immediate successor node in the ring.
      * @return the successor reference.
+     * @throws NodeNotFoundException when this node is not available to answer
      */
-    Node getSuccessor() throws NetworkFailureException; // TODO should throw NodeNotFoundException as well, since this node might be not available
+    Node getSuccessor() throws NodeNotFoundException, NetworkFailureException;
+
+    /**
+     * Passive semantics: node n might be the predecessor of this node.
+     * If so, set it in place of the current one.
+     * @param n the node pretending to be this node's predecessor.
+     * @throws NodeNotFoundException when this node is not available to answer.
+     */
+    void notifyPredecessor(Node n) throws NodeNotFoundException, NetworkFailureException;
 
     /**
      * Gets the identifier of this node.

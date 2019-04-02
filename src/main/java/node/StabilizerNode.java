@@ -1,109 +1,108 @@
 package node;
 
-import network.remoteNode.RemoteNode;
-import node.exceptions.FingerTableEmptyException;
-import node.exceptions.NodeNotFoundException;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import static java.lang.Math.pow;
-import static utils.Util.M;
-import static utils.Util.isInsideInterval;
+import java.util.function.Consumer;
 
 /**
  * This concrete implementation of {@link LocalNode} add the stabilization methods, as described in the paper.
- * The stabilization methods have no meaning in appearing also in {@link RemoteNode}, since these routines are running
+ * The stabilization methods have no meaning in appearing also in {@link network.remoteNode.RemoteNode}, since these routines are running
  * locally on the instance to which the remote node is pointing. Hence on the {@link StabilizerNode}.
  */
-public class StabilizerNode extends LocalNode implements Notifier{
+public class StabilizerNode extends LocalNode {
 
-    private int next = 0;
-    private boolean newEntry = true;
+    private final List<PeriodicAction> periodicActions;
+    private boolean running;
 
-    public StabilizerNode(int id) {
+    /**
+     * Constructs a Node specifying the periodic actions to execute in order to stabilize it.
+     * @param id the node id
+     * @param tasks the sequence of actions to execute on a {@link LocalNode}
+     * @param labels the labels to assign to each action (w.r.t. to the order of tasks)
+     * @param delays the amount of time in milliseconds before scheduling each task (w.r.t. to the order of tasks)
+     * @param periods the amount of time in milliseconds among each repetition of the tasks execution
+     *                (w.r.t. to the order of tasks)
+     */
+    public StabilizerNode(int id, Consumer<LocalNode>[] tasks, String[] labels,
+                          long[] delays, long[] periods) {
         super(id);
 
-        TimerTask stabilizeTask = new TimerTask() {
-            @Override
-            public void run() {
-                stabilize();
-            }
-        };
-        TimerTask fixFingerTask = new TimerTask() {
-            @Override
-            public void run() {
-                fixFingers();
-                if(newEntry){
-                    while(next != 0){
-                        fixFingers();
-                    }
-                    newEntry = false;
+        if (tasks.length != delays.length ||
+                tasks.length != periods.length ||
+                tasks.length != labels.length)
+            throw new IllegalArgumentException("StabilizerNode(): three arrays' lengths must be the same");
+
+        this.periodicActions = new ArrayList<>();
+        this.running = false;
+
+        for (int i = 0; i < tasks.length; i++)
+            periodicActions.add(new PeriodicAction(this, tasks[i], labels[i],
+                    delays[i], periods[i]));
+    }
+
+    /**
+     * Starts the stabilization mechanisms, by starting every single periodic task
+     * (if the server is not running)
+     * @see PeriodicAction#start()
+     */
+    public void start() {
+        if(!running) {
+            for (PeriodicAction pa : periodicActions)
+                pa.start();
+            running = true;
+        }
+    }
+
+    /**
+     * If the server is running, stops every periodic action scheduled.
+     */
+    public void stop() {
+        if(running) {
+            for (PeriodicAction pa : periodicActions)
+                pa.stop();
+            running = false;
+        }
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    /**
+     * The motivation of this class is that actually we have several periodic actions,
+     * such as stabilize, fix fingers and check predecessor. Others might be added.
+     * Then is convenient to have a class that track the timer objects, the frequencies and so on.
+     */
+    public class PeriodicAction {
+        private final TimerTask timerTask;
+        private final Timer timer;
+        private final long delay;
+        private final long period;
+
+        PeriodicAction(StabilizerNode target, Consumer<LocalNode> runnable, String label, long delay, long period) {
+            this.timerTask = new TimerTask() {
+                @Override
+                public void run() {
+                    System.out.println("Calling periodic routine in " + target.getId());
+                    runnable.accept(target);
                 }
-            }
-        };
-        Timer stabilizeTimer = new Timer("Stabilizer");
-        stabilizeTimer.scheduleAtFixedRate(stabilizeTask, 500, 250);
-        Timer fixFingerTimer = new Timer("FixFinger");
-        fixFingerTimer.scheduleAtFixedRate(fixFingerTask, 800, 250);
-
-    }
-
-    public void join(Node n) throws NodeNotFoundException, FingerTableEmptyException {
-        setPredecessor(null);
-        setSuccessor(n.findSuccessor(this.getId(), new CallTracker(this.getId(), 0)));
-    }
-
-    public Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException {
-        if(this.getId() == callTracker.getCaller() && callTracker.getSteps() > 0){
-            System.err.println("Deadlock! The caller is node: "+ callTracker.getCaller());
-            throw new NodeNotFoundException();
-        }
-        if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
-            Node temp = closestPrecedingFinger(id);
-            callTracker.addStep();
-            return temp.findSuccessor(id, callTracker);
-        }
-        return getSuccessor();
-    }
-
-    public void stabilize(){
-        try {
-            Node x = getSuccessor().getPredecessor();
-            if(isInsideInterval(x.getId(), this.getId(), this.getSuccessor().getId()))
-                setSuccessor(x);
-            ((Notifier) getSuccessor()).notifyPredecessor(this);
-        } catch (NodeNotFoundException e) {
-            //e.printStackTrace();
+            };
+            this.timer = new Timer(label);
+            this.delay = delay;
+            this.period = period;
         }
 
-    }
+        /**
+         * Starts this periodic action
+         */
+        void start() {
+            timer.scheduleAtFixedRate(timerTask, delay, period);
+        }
 
-    public void notifyPredecessor(Node n){
-        if(getPredecessor() == null || isInsideInterval(n.getId(), getPredecessor().getId(), this.getId()))
-            setPredecessor(n);
-
-    }
-
-    public void fixFingers(){
-        next = next + 1;
-        if(next >= M)
-            next = 0;
-        try {
-            this.setFingerTableEntryNode(next, findSuccessor((this.getId()+(int)pow(2,next))%((int)pow(2,M)), new CallTracker(this.getId(), 0)));
-            /*
-                Even if fixFingers cannot reach the node, will try it later by itself
-                when `next` will have again the same value
-             */
-        } catch (NodeNotFoundException e) {
-            //e.printStackTrace();
-        } catch (FingerTableEmptyException e) {
-            e.printStackTrace();
+        void stop() {
+            timer.cancel();
         }
     }
-
-    public void checkPredecessor(){
-        //
-    }
-
 }
