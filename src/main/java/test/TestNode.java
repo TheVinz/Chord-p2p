@@ -1,6 +1,7 @@
 package test;
 
 import com.sun.istack.internal.NotNull;
+import network.exeptions.NetworkFailureException;
 import node.CallTracker;
 import node.LocalNode;
 import node.Node;
@@ -30,12 +31,12 @@ public class TestNode extends LocalNode {
         return n;
     }
 
-    public void join(@NotNull Node n) throws NodeNotFoundException, FingerTableEmptyException {
+    public void join(@NotNull Node n) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
         initFingerTable(n);
         updateOthers();
     }
 
-    public void initFingerTable(Node n) throws NodeNotFoundException, FingerTableEmptyException {
+    public void initFingerTable(Node n) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
         this.setFingerTableEntryNode(0, n.findSuccessor(this.getFingerTableEntry(0).getStart(),null));
         setPredecessor(((LocalNode) getSuccessor()).getPredecessor());
         ((LocalNode) getSuccessor()).setPredecessor(this);

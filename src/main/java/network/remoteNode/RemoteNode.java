@@ -6,7 +6,6 @@ import network.message.ReplyMessage;
 import network.message.RequestMessage;
 import node.CallTracker;
 import node.Node;
-import node.Notifier;
 import node.exceptions.NodeNotFoundException;
 
 import java.io.Closeable;
@@ -18,7 +17,7 @@ import java.net.Socket;
  * This class is the abstraction of a node that lives in a remote machine.
  * So each method will resolve remotely on the other machine and eventually returns to the local client.
  */
-public class RemoteNode implements Notifier, Closeable {
+public class RemoteNode implements Node, Closeable {
 
     private final int id;
     private final String ip;
@@ -47,6 +46,7 @@ public class RemoteNode implements Notifier, Closeable {
         }
     }
 
+    @Override
     public Node findSuccessor(int id, CallTracker trackes) throws NodeNotFoundException, NetworkFailureException {
         if(closed)
             throw new NetworkFailureException("Connection with the remote node currently closed");
@@ -60,6 +60,7 @@ public class RemoteNode implements Notifier, Closeable {
 
     }
 
+    @Override
     public Node getPredecessor() throws NodeNotFoundException, NetworkFailureException {
         if(closed)
             throw new NetworkFailureException("Connection with the remote node currently closed");
@@ -72,6 +73,7 @@ public class RemoteNode implements Notifier, Closeable {
             return new RemoteNode(reply.id, reply.ip, reply.port);
     }
 
+    @Override
     public Node getSuccessor() throws NetworkFailureException {
         if(closed)
             throw new NetworkFailureException("Connection with the remote node currently closed");
@@ -84,6 +86,7 @@ public class RemoteNode implements Notifier, Closeable {
             return new RemoteNode(reply.id, reply.ip, reply.port);
     }
 
+    @Override
     public void notifyPredecessor(Node n) throws NetworkFailureException {
         if(closed)
             throw new NetworkFailureException("Connection with the remote node currently closed");
@@ -109,10 +112,11 @@ public class RemoteNode implements Notifier, Closeable {
         return ip;
     }
 
+    @Override
     public void close() throws IOException {
         inputBuffer.close();
         outputBuffer.close();
         socket.close();
-        closed=true;
+        closed = true;
     }
 }

@@ -1,8 +1,17 @@
 package utils;
 
-public class Util {
+import node.LocalNode;
+import node.StabilizerNode;
+
+import java.util.function.Consumer;
+
+public abstract class Util {
 
     public static final int M = 8;
+    private static final Consumer<LocalNode> STABILIZER_ROUTINE = LocalNode::stabilize;
+    private static final Consumer<LocalNode> FIX_FINGER_ROUTINE = LocalNode::fixFingers;
+    private static final Consumer<LocalNode>[] DEFAULT_ROUTINES = new Consumer[]{STABILIZER_ROUTINE, FIX_FINGER_ROUTINE};
+    private static final String[] defaultLabels = new String[]{"stabilizer", "fix_fingers"};
 
     public static boolean isInsideInterval(int id, int start, int end){
         if(start > end){
@@ -12,5 +21,8 @@ public class Util {
         else return id != start; //
     }
 
+    public static StabilizerNode createDefaultStabilizerNode(int id, long[] delays, long[] periods) {
+        return new StabilizerNode(id, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+    }
 
 }
