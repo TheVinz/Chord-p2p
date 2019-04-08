@@ -1,5 +1,6 @@
 package node;
 
+import network.exeptions.NetworkFailureException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import utils.Util;
@@ -43,7 +44,13 @@ class LocalNodeTest {
         a.create();
         assertDoesNotThrow(() -> b.join(a));
         // TODO: assertNull(b.getPredecessor());
-        assertEquals(a, b.getSuccessor());
+        Node bSucc = null;
+        try {
+            bSucc = b.getSuccessor();
+        } catch (NetworkFailureException e) {
+            e.printStackTrace();
+        }
+        assertEquals(a, bSucc);
     }
 
     /**

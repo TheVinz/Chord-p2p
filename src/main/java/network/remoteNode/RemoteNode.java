@@ -94,6 +94,12 @@ public class RemoteNode implements Node, Closeable {
         outputBuffer.sendRequest(msg);
     }
 
+    @Override
+    public boolean hasFailed() {
+        // TODO ping the remote node and return true if it doesn't answer
+        return false;
+    }
+
     public boolean isClosed(){
         return closed;
     }

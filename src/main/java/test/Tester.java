@@ -31,7 +31,12 @@ public class Tester {
         tearDown();
     }
 
+    enum Edge {
+        E1, E2, E3
+    }
+
     private void setup() {
+        Edge[][] map = new Edge[1][2];
         int n = (int) Math.pow(2,M);
         boolean[] booleans = new boolean[n];
         for(int i=0; i<booleans.length; i++)

@@ -1,6 +1,5 @@
 package test;
 
-import com.sun.istack.internal.NotNull;
 import network.exeptions.NetworkFailureException;
 import node.CallTracker;
 import node.LocalNode;
@@ -19,19 +18,19 @@ public class TestNode extends LocalNode {
     }
 
 
-    public Node findSuccessor(int id, CallTracker callTracker) throws FingerTableEmptyException {
+    public Node findSuccessor(int id, CallTracker callTracker) throws FingerTableEmptyException, NetworkFailureException {
         LocalNode n = (LocalNode) findPredecessor(id);
         return n.getSuccessor();
     }
 
-    public Node findPredecessor(int id) throws FingerTableEmptyException {
+    public Node findPredecessor(int id) throws FingerTableEmptyException, NetworkFailureException {
         LocalNode n = this;
         while(!isInsideInterval(id, n.getId(), n.getSuccessor().getId()) && id != n.getSuccessor().getId())
             n = (LocalNode) n.closestPrecedingFinger(id);
         return n;
     }
 
-    public void join(@NotNull Node n) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
+    public void join(Node n) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
         initFingerTable(n);
         updateOthers();
     }
@@ -53,14 +52,14 @@ public class TestNode extends LocalNode {
         }
     }
 
-    public void updateOthers() throws FingerTableEmptyException {
+    public void updateOthers() throws FingerTableEmptyException, NetworkFailureException {
         for(int i = 0; i<M; i++){
             TestNode p = (TestNode) findPredecessor(((this.getId()-((int) Math.pow(2, i)) + ((int) Math.pow(2, M)))+1) % ((int) Math.pow(2, M)));
             p.updateFingerTable(this, i);
         }
     }
 
-    public void updateFingerTable(Node s, int i) throws FingerTableEmptyException {
+    public void updateFingerTable(Node s, int i) throws FingerTableEmptyException, NetworkFailureException {
         if(isInsideInterval(s.getId(), this.getId(), this.getFingerTableEntry(i).getNode().getId())){
             this.setFingerTableEntryNode(i, s);
             TestNode p = (TestNode) getPredecessor();

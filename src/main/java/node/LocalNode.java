@@ -69,7 +69,7 @@ public class LocalNode implements Node{
     }
 
     @Override
-    public Node getSuccessor() {
+    public Node getSuccessor() throws NetworkFailureException {
         try {
             return fingerTable[0].getNode();
         } catch (FingerTableEmptyException e) {
@@ -86,7 +86,7 @@ public class LocalNode implements Node{
     }
 
     @Override
-    synchronized public Node getPredecessor() {
+    synchronized public Node getPredecessor() throws NetworkFailureException {
         return predecessor;
     }
 
@@ -95,10 +95,19 @@ public class LocalNode implements Node{
     }
 
     @Override
-    public void notifyPredecessor(Node n) {
+    public void notifyPredecessor(Node n) throws NetworkFailureException {
         // TODO getPredecessor() would never be null since we initialize it as this
         if(getPredecessor() == null || isInsideInterval(n.getId(), getPredecessor().getId(), this.getId()))
             setPredecessor(n);
+    }
+
+    /**
+     * A local node never fails
+     * @return false always
+     */
+    @Override
+    public boolean hasFailed() {
+        return false;
     }
 
     /*
@@ -136,7 +145,8 @@ public class LocalNode implements Node{
     }
 
     public void checkPredecessor(){
-        //
+        if(predecessor.hasFailed())
+            setPredecessor(this); // actually null in the paper
     }
 
     /*
@@ -172,7 +182,7 @@ public class LocalNode implements Node{
         return fingerTable[index];
     }
 
-    public void setFingerTableEntryNode(int index, Node n){
+    protected void setFingerTableEntryNode(int index, Node n){
         fingerTable[index].setNode(n);
     }
 

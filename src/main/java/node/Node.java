@@ -51,6 +51,12 @@ public interface Node {
     void notifyPredecessor(Node n) throws NodeNotFoundException, NetworkFailureException;
 
     /**
+     * Verifies whether this node is available
+     * @return true if the node is not available
+     */
+    boolean hasFailed();
+
+    /**
      * Gets the identifier of this node.
      * @return this node's identifier.
      */
