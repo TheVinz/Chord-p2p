@@ -85,7 +85,7 @@ public class StabilizerNode extends LocalNode {
             this.timerTask = new TimerTask() {
                 @Override
                 public void run() {
-                    System.out.println("Calling periodic routine in " + target.getId());
+                    //System.out.println("Calling periodic routine in " + target.getId());
                     runnable.accept(target);
                 }
             };

@@ -14,7 +14,7 @@ import static java.lang.Thread.sleep;
 import static utils.Util.M;
 import static utils.Util.createDefaultStabilizerNode;
 
-public class Tester {
+public class SimpleTester {
 
     private static final long[] delays = new long[]{500, 800};
     private static final long[] periods = new long[]{250, 250};
@@ -33,6 +33,33 @@ public class Tester {
 
     enum Edge {
         E1, E2, E3
+    }
+
+    public void exitNode(List<Node> testNodes, int id, boolean booleans[]){
+
+    }
+
+    private void checkTesterCorrectness() throws NodeNotFoundException, NetworkFailureException {
+        Node temp = testNodes.get(0);
+        int begin = temp.getId();
+        int cont = 1;
+        //System.out.println(begin);
+        while(temp.getSuccessor().getId() != begin){
+            cont ++;
+            temp = temp.getSuccessor();
+            //System.out.println(temp.getId());
+            boolean ctrl = false;
+            for(int j=0; j<testNodes.size(); j++)
+                if(testNodes.get(j).getId() == temp.getId()){
+                    ctrl = true;
+                    break;
+                }
+            if(!ctrl)
+                System.err.println("The tester is wrong!");
+        }
+        if(cont != testNodes.size()){
+            System.err.println("Size error, the tester is wrong!");
+        }
     }
 
     private void setup() {
@@ -78,11 +105,20 @@ public class Tester {
                 }
                 System.out.println(id + " created");
                 booleans[id] = false;
+            }else{
+                exitNode(testNodes, id, booleans);
             }
         }
         try {
             sleep(10000);
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
+            checkTesterCorrectness();
+        } catch (NodeNotFoundException e) {
+            e.printStackTrace();
+        } catch (NetworkFailureException e) {
             e.printStackTrace();
         }
     }

@@ -7,6 +7,9 @@ import node.Node;
 import node.exceptions.FingerTableEmptyException;
 import node.exceptions.NodeNotFoundException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static utils.Util.*;
 
 public class TestNode extends LocalNode {
@@ -57,6 +60,24 @@ public class TestNode extends LocalNode {
             TestNode p = (TestNode) findPredecessor(((this.getId()-((int) Math.pow(2, i)) + ((int) Math.pow(2, M)))+1) % ((int) Math.pow(2, M)));
             p.updateFingerTable(this, i);
         }
+    }
+
+    public void exit() throws FingerTableEmptyException, NetworkFailureException {
+        List<TestNode> targetNodes = new ArrayList<>();
+        List<TestNode> updatedNodes = new ArrayList<>();
+        for(int i = 0; i<M; i++){
+            TestNode p = (TestNode) findPredecessor(((this.getId()-((int) Math.pow(2, i)) + ((int) Math.pow(2, M)))+1) % ((int) Math.pow(2, M)));
+            targetNodes.add(p);
+            updatedNodes.add((TestNode) this.getSuccessor());
+        }
+        for(int i = 0; i<M; i++){
+            TestNode temp = targetNodes.get(i);
+            while(temp.getFingerTableEntry(i).getNode().getId() == this.getId()){
+                temp.getFingerTableEntry(i).setNode(updatedNodes.get(i));
+                temp = (TestNode) temp.getPredecessor();
+            }
+        }
+        ((TestNode)this.getSuccessor()).setPredecessor(getPredecessor());
     }
 
     public void updateFingerTable(Node s, int i) throws FingerTableEmptyException, NetworkFailureException {

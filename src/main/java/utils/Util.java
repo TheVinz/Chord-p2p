@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 public abstract class Util {
 
-    public static final int M = 8;
+    public static final int M = 4;
     private static final Consumer<LocalNode> STABILIZER_ROUTINE = LocalNode::stabilize;
     private static final Consumer<LocalNode> FIX_FINGER_ROUTINE = LocalNode::fixFingers;
     private static final Consumer<LocalNode>[] DEFAULT_ROUTINES = new Consumer[]{STABILIZER_ROUTINE, FIX_FINGER_ROUTINE};
