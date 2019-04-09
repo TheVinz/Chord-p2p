@@ -35,7 +35,8 @@ public class FailureHandlerNode extends StabilizerNode {
         }
     }
 
-    synchronized public void checkSuccessor() {
+    public void checkSuccessor() {
+        updateSuccessorsList();
         try {
             if(successorsList.size() > 0 && super.getSuccessor().hasFailed()) {
                 this.setSuccessor(successorsList.get(0));
@@ -46,7 +47,7 @@ public class FailureHandlerNode extends StabilizerNode {
         }
     }
 
-    synchronized private void updateSuccessorsList(){
+    private void updateSuccessorsList(){
         List<Node> successorSuccessorsList = null;
         try {
             successorSuccessorsList = ((FailureHandlerNode) this.getSuccessor()).getSuccessorsList();
@@ -55,7 +56,7 @@ public class FailureHandlerNode extends StabilizerNode {
         }
         List<Node> temp = (List) ((ArrayList) successorSuccessorsList).clone();
         try {
-            if(this.getSuccessor().getSuccessor().getId() != this.getId())
+            if(this.getSuccessor().getSuccessor().getId() != this.getId() && this.getSuccessor().getSuccessor().getId() != this.getSuccessor().getId())
                 temp.add(0, this.getSuccessor().getSuccessor());
             else if(temp.size() > R){
                 temp.remove(temp.size()-1);

@@ -16,8 +16,8 @@ import static utils.Util.createDefaultStabilizerNode;
 
 public class SimpleTester {
 
-    private static final long[] delays = new long[]{500, 800, 0, 0, 40};
-    private static final long[] periods = new long[]{250, 250, 20, 20, 20};
+    private static final long[] delays = new long[]{500, 800, 0, 100};
+    private static final long[] periods = new long[]{250, 250, 20, 20};
 
     private List<Node> stabilizerNodes = new ArrayList<>();
     private List<Node> testNodes = new ArrayList<>();
@@ -84,13 +84,15 @@ public class SimpleTester {
         testNodes.add(testSource);
 
         Random rnd = new Random(9);
-        for(int i=0; i<10; i++){
+        for(int i=0; i<100; i++){
             try {
                 sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             int id = rnd.nextInt(n);
+            while(id == 0)
+                id = rnd.nextInt(n);
             if(booleans[id]) {
                 StabilizerNode stabilizerNode = createStabilizerNode(id, delays, periods);
                 stabilizerNodes.add(stabilizerNode);

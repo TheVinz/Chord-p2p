@@ -44,7 +44,7 @@ public class LocalNode implements Node{
 
     @Override
     public Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
-        System.out.println("caller: "+this.getId()+" key: "+id);
+        //System.out.println("caller: "+this.getId()+" key: "+id);
         if(this.getId() == callTracker.getCaller() && callTracker.getSteps() > 0){
             System.err.println("Deadlock! The caller is node: "+ callTracker.getCaller()+ " looking for key: "+id+" successor: "+this.getSuccessor().getId());
             throw new NodeNotFoundException();
