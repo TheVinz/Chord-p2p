@@ -16,8 +16,8 @@ import static utils.Util.createDefaultStabilizerNode;
 
 public class SimpleTester {
 
-    private static final long[] delays = new long[]{500, 800};
-    private static final long[] periods = new long[]{250, 250};
+    private static final long[] delays = new long[]{500, 800, 0, 0, 40};
+    private static final long[] periods = new long[]{250, 250, 20, 20, 20};
 
     private List<Node> stabilizerNodes = new ArrayList<>();
     private List<Node> testNodes = new ArrayList<>();
@@ -35,7 +35,7 @@ public class SimpleTester {
         E1, E2, E3
     }
 
-    public void exitNode(List<Node> testNodes, int id, boolean booleans[]){
+    public void exitNode(List<Node> testNodes, List<Node> stabilizerNodes, int id, boolean booleans[]){
 
     }
 
@@ -62,6 +62,10 @@ public class SimpleTester {
         }
     }
 
+    public StabilizerNode createStabilizerNode(int id, long[] delays, long[] periods){
+        return createDefaultStabilizerNode(id, delays, periods, false);
+    }
+
     private void setup() {
         Edge[][] map = new Edge[1][2];
         int n = (int) Math.pow(2,M);
@@ -70,7 +74,7 @@ public class SimpleTester {
             booleans[i]=true;
         booleans[0] = false;
 
-        stabilizerSource = createDefaultStabilizerNode(0, delays, periods);
+        stabilizerSource = createStabilizerNode(0, delays, periods);
         stabilizerSource.create();
         stabilizerSource.start();
         stabilizerNodes.add(stabilizerSource);
@@ -88,25 +92,33 @@ public class SimpleTester {
             }
             int id = rnd.nextInt(n);
             if(booleans[id]) {
-                StabilizerNode stabilizerNode = createDefaultStabilizerNode(id, delays, periods);
+                StabilizerNode stabilizerNode = createStabilizerNode(id, delays, periods);
                 stabilizerNodes.add(stabilizerNode);
                 TestNode testNode = new TestNode(id);
                 testNodes.add(testNode);
-                try {
-                    stabilizerNode.join(stabilizerSource);
-                    stabilizerNode.start();
-                    testNode.join(testSource);
+                boolean correctJoin = false;
+                while(!correctJoin) {
+                    try {
+                        stabilizerNode.join(stabilizerSource);
+                        stabilizerNode.start();
+                        testNode.join(testSource);
+                        correctJoin = true;
 
-                } catch (FingerTableEmptyException | NodeNotFoundException | NetworkFailureException e) {
-                    e.printStackTrace();
-                    System.err.println("Sorry, join failed.\nTry again later.\nExiting..");
-                    System.exit(-1);
-                    // TODO Try again after x seconds.
+                    } catch (FingerTableEmptyException | NodeNotFoundException | NetworkFailureException e) {
+                        e.printStackTrace();
+                        System.err.println("Sorry, join of node "+id+" failed.\nTry again...\n");
+                        try {
+                            sleep(2000);
+                        } catch (InterruptedException e1) {
+                            e1.printStackTrace();
+                        }
+                        // TODO Try again after x seconds.
+                    }
                 }
                 System.out.println(id + " created");
                 booleans[id] = false;
             }else{
-                exitNode(testNodes, id, booleans);
+                exitNode(testNodes, stabilizerNodes, id, booleans);
             }
         }
         try {

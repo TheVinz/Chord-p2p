@@ -44,8 +44,9 @@ public class LocalNode implements Node{
 
     @Override
     public Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
+        System.out.println("caller: "+this.getId()+" key: "+id);
         if(this.getId() == callTracker.getCaller() && callTracker.getSteps() > 0){
-            System.err.println("Deadlock! The caller is node: "+ callTracker.getCaller());
+            System.err.println("Deadlock! The caller is node: "+ callTracker.getCaller()+ " looking for key: "+id+" successor: "+this.getSuccessor().getId());
             throw new NodeNotFoundException();
         }
         if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
@@ -56,11 +57,21 @@ public class LocalNode implements Node{
         return getSuccessor();
     }
 
-    public Node closestPrecedingFinger(int id) {
+    public Node closestPrecedingFinger(int id) throws NetworkFailureException {
         for(int i=M-1; i>=0; i--) {
             try {
-                if(isInsideInterval(fingerTable[i].getNode().getId(),  this.getId(), id))
+                if(isInsideInterval(fingerTable[i].getNode().getId(),  this.getId(), id)) {
+                    /*if(fingerTable[i].getNode().hasFailed()){
+                        if(i==0){
+                            //TODO
+                            throw new NetworkFailureException();
+                        }
+                        else
+                            i--;
+                    }
+                    else*/
                     return fingerTable[i].getNode();
+                }
             } catch (FingerTableEmptyException e) {
                 // TODO log exception
             }
@@ -117,7 +128,7 @@ public class LocalNode implements Node{
     public void stabilize(){
         try {
             Node x = getSuccessor().getPredecessor();
-            if(isInsideInterval(x.getId(), this.getId(), this.getSuccessor().getId()))
+            if(x != null && isInsideInterval(x.getId(), this.getId(), this.getSuccessor().getId()))
                 setSuccessor(x);
             getSuccessor().notifyPredecessor(this);
         } catch (NodeNotFoundException | NetworkFailureException e) {
@@ -144,10 +155,8 @@ public class LocalNode implements Node{
         }
     }
 
-    public void checkPredecessor(){
-        if(predecessor.hasFailed())
-            setPredecessor(this); // actually null in the paper
-    }
+
+
 
     /*
      * Overlay network construction, join or create one
