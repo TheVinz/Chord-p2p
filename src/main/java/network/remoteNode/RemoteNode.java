@@ -1,15 +1,15 @@
 package network.remoteNode;
 
 import network.exeptions.NetworkFailureException;
-import network.message.Message;
-import network.message.ReplyMessage;
-import network.message.RequestMessage;
-import node.CallTracker;
+import network.message.*;
+import utils.ChordResource;
 import node.Node;
 import node.exceptions.NodeNotFoundException;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 
@@ -38,8 +38,10 @@ public class RemoteNode implements Node, Closeable {
     public void setUpConnection() throws NetworkFailureException {
         try {
             this.socket=new Socket(ip, port);
-            outputBuffer=new OutputBuffer(socket);
-            inputBuffer=new InputBuffer(socket, queue);
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            outputBuffer=new OutputBuffer(oos);
+            inputBuffer= new InputBuffer(ois, queue);
             closed=false;
         } catch (IOException e) {
             throw new NetworkFailureException();
@@ -47,36 +49,48 @@ public class RemoteNode implements Node, Closeable {
     }
 
     @Override
-    public Node findSuccessor(int id, CallTracker trackes) throws NodeNotFoundException, NetworkFailureException {
-        if(closed)
-            throw new NetworkFailureException("Connection with the remote node currently closed");
-        RequestMessage msg = new RequestMessage(Message.FIND_SUCCESSOR, id);
-        Request request = outputBuffer.sendRequest(msg);
-        ReplyMessage reply = queue.submitRequest(request);
-        if(reply.ip==null)
-            throw new NodeNotFoundException();
-        else
-            return new RemoteNode(reply.id, reply.ip, reply.port);
+    public Node findSuccessor(int id) throws NodeNotFoundException, NetworkFailureException {
+        try {
+            if (closed)
+                setUpConnection();
+            RequestMessage msg = new RequestMessage(Message.FIND_SUCCESSOR, id);
+            Request request = outputBuffer.sendRequest(msg);
+            ReplyMessage reply = queue.submitRequest(request);
 
+            if (reply.ip == null)
+                throw new NodeNotFoundException();
+            else
+                return new RemoteNode(reply.id, reply.ip, reply.port);
+        }
+        catch (NetworkFailureException e){
+            e.setMessage("Failed to contact Node " + this.id + " on findSuccessor");
+            throw e;
+        }
     }
 
     @Override
     public Node getPredecessor() throws NodeNotFoundException, NetworkFailureException {
-        if(closed)
-            throw new NetworkFailureException("Connection with the remote node currently closed");
-        RequestMessage msg = new RequestMessage(Message.GET_PREDECESSOR);
-        Request request = outputBuffer.sendRequest(msg);
-        ReplyMessage reply = queue.submitRequest(request);
-        if(reply.ip==null)
-            throw new NodeNotFoundException();
-        else
-            return new RemoteNode(reply.id, reply.ip, reply.port);
+        try {
+            if (closed)
+                setUpConnection();
+            RequestMessage msg = new RequestMessage(Message.GET_PREDECESSOR);
+            Request request = outputBuffer.sendRequest(msg);
+            ReplyMessage reply = queue.submitRequest(request);
+            if (reply.ip == null)
+                throw new NodeNotFoundException();
+            else {
+                return new RemoteNode(reply.id, reply.ip, reply.port);
+            }
+        } catch (NetworkFailureException e){
+            e.setMessage("Failed to contact Node " + id + " on getPredecessor");
+            throw e;
+        }
     }
 
     @Override
     public Node getSuccessor() throws NetworkFailureException {
         if(closed)
-            throw new NetworkFailureException("Connection with the remote node currently closed");
+            setUpConnection();
         RequestMessage msg = new RequestMessage(Message.GET_SUCCESSOR);
         Request request = outputBuffer.sendRequest(msg);
         ReplyMessage reply = queue.submitRequest(request);
@@ -89,9 +103,29 @@ public class RemoteNode implements Node, Closeable {
     @Override
     public void notifyPredecessor(Node n) throws NetworkFailureException {
         if(closed)
-            throw new NetworkFailureException("Connection with the remote node currently closed");
+            setUpConnection();
         RequestMessage msg = new RequestMessage(Message.NOTIFY_PREDECESSOR, n.getIp(), n.getPort(), n.getId());
         outputBuffer.sendRequest(msg);
+    }
+
+    @Override
+    public void publish(ChordResource resource) throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        PublishMessage msg = new PublishMessage(resource);
+        outputBuffer.sendRequest(msg);
+    }
+
+    @Override
+    public ChordResource fetch(String name) throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        FetchMessage msg = new FetchMessage(name);
+        Request request = outputBuffer.sendRequest(msg);
+        ReplyMessage reply = queue.submitRequest(request);
+        if(reply instanceof ResourceMessage)
+            return ((ResourceMessage) reply).getResource();
+        else return null;
     }
 
     public boolean isClosed(){
@@ -114,9 +148,11 @@ public class RemoteNode implements Node, Closeable {
 
     @Override
     public void close() throws IOException {
-        inputBuffer.close();
-        outputBuffer.close();
-        socket.close();
-        closed = true;
+        if(!closed) {
+            inputBuffer.close();
+            outputBuffer.close();
+            socket.close();
+            closed = true;
+        }
     }
 }

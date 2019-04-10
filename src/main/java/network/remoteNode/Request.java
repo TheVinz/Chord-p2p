@@ -4,16 +4,18 @@ import network.message.ReplyMessage;
 
 class Request {
 
-    private static final long REQUEST_TIMEOUT=5000L;
+    private static final long REQUEST_TIMEOUT=10000L;
 
     private final int requestId;
     private ReplyMessage replyMessage=null;
     private boolean done=false;
     private boolean failed=false;
+    private Thread timeout;
 
     Request(int requestId){
         this.requestId=requestId;
-        new Thread(this::timer).start();
+        timeout = new Thread(this::timer);
+        //timeout.start();
     }
 
     int getRequestId() {
@@ -24,6 +26,7 @@ class Request {
         if(!done) {
             this.replyMessage = replyMessage;
             this.done = true;
+            timeout.interrupt();
             notifyAll();
         }
     }
@@ -58,7 +61,7 @@ class Request {
         try {
             Thread.sleep(REQUEST_TIMEOUT);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            return;
         }
 
         delete();

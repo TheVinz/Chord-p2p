@@ -3,6 +3,8 @@ package network.message;
 public class ReplyMessage extends Message{
     public static final long serialVersionUID = 46513505L;
 
+    ReplyMessage(){}
+
     public ReplyMessage(int method) {
         super(method);
     }

@@ -4,7 +4,6 @@ import network.message.Message;
 import network.message.ReplyMessage;
 
 import java.io.*;
-import java.net.Socket;
 
 
 class InputBuffer implements Closeable {
@@ -12,9 +11,8 @@ class InputBuffer implements Closeable {
     private final PendingRequestQueue queue;
     private boolean closed=false;
 
-    InputBuffer(Socket socket, PendingRequestQueue queue) throws IOException {
+    InputBuffer(ObjectInputStream ois, PendingRequestQueue queue) throws IOException {
         this.queue=queue;
-        ObjectInputStream ois=new ObjectInputStream(socket.getInputStream());
         new Thread(() -> loop(ois)).start();
     }
 
@@ -22,7 +20,7 @@ class InputBuffer implements Closeable {
         try {
             while (!closed) {
                 Message in = (Message) ois.readObject();
-                if (in.getClass() == ReplyMessage.class) {
+                if (in instanceof ReplyMessage) {
                     queue.handleReplyMessage((ReplyMessage) in);
                 } else {
                     //TODO: verificare che effettivamente questa cosa non succede mai

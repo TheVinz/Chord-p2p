@@ -15,6 +15,13 @@ public abstract class Message implements Serializable {
     public final int id;
     private int requestId;
 
+    Message(){
+        method=0;
+        ip=null;
+        port=0;
+        id=0;
+    }
+
     Message(int method){
         this.method=method;
         this.id=0;

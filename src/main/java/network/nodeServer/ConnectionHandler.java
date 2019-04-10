@@ -5,8 +5,8 @@ import network.message.Message;
 import network.message.ReplyMessage;
 import network.message.RequestMessage;
 import network.remoteNode.RemoteNode;
+import node.LocalNode;
 import node.Node;
-import node.exceptions.FingerTableEmptyException;
 import node.exceptions.NodeNotFoundException;
 
 import java.io.Closeable;
@@ -20,22 +20,22 @@ class ConnectionHandler implements Closeable {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private final Socket socket;
-    private final Node localNode;
+    private final LocalNode localNode;
     private boolean closed=false;
 
-    ConnectionHandler(Socket socket, Node localNode) {
+    ConnectionHandler(Socket socket, LocalNode localNode) {
         this.socket=socket;
         this.localNode=localNode;
         try{
-            ois = new ObjectInputStream(socket.getInputStream());
             oos = new ObjectOutputStream(socket.getOutputStream());
+            ois = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
+            e.printStackTrace();
             try {
                 close();
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
-            closed=true;
         }
     }
 
@@ -43,7 +43,7 @@ class ConnectionHandler implements Closeable {
         try {
             while (!closed) {
                 Message in = (Message) ois.readObject();
-                if(in.getClass()==RequestMessage.class){
+                if(in instanceof RequestMessage){
                     new Thread(
                             () -> handleRequest((RequestMessage) in)
                     ).start();
@@ -66,40 +66,10 @@ class ConnectionHandler implements Closeable {
 
     private void handleRequest(RequestMessage msg) {
         try {
-            Node node;
-            ReplyMessage reply;
-            switch (msg.method) {
-                case Message.FIND_SUCCESSOR:
-                    node = localNode.findSuccessor(msg.id, null);
-                    reply = new ReplyMessage(msg.method, node.getIp(), node.getPort(), node.getId());
-                    reply.setRequestId(msg.getRequestId());
-                    oos.writeObject(reply);
-                    break;
-                case Message.GET_PREDECESSOR:
-                    node=localNode.getPredecessor();
-                    reply = new ReplyMessage(msg.method, node.getIp(), node.getPort(), node.getId());
-                    reply.setRequestId(msg.getRequestId());
-                    oos.writeObject(reply);
-                    break;
-                case Message.GET_SUCCESSOR:
-                    node = localNode.getSuccessor();
-                    reply = new ReplyMessage(msg.method, node.getIp(), node.getPort(), node.getId());
-                    reply.setRequestId(msg.getRequestId());
-                    oos.writeObject(reply);
-                    break;
-                case Message.NOTIFY_PREDECESSOR:
-                    //TODO: Ricordarsi di aprire la connessione con il remote node o qui o nel localNode
-                    node = new RemoteNode(msg.id, msg.ip, msg.port);
-                    localNode.notifyPredecessor(node);
-                    break;
+            ReplyMessage reply = msg.handleRequest(localNode);
+            synchronized (this) {
+                oos.writeObject(reply);
             }
-        } catch (NodeNotFoundException e) {
-            e.printStackTrace();
-        } catch (FingerTableEmptyException e) {
-            e.printStackTrace();
-        } catch (NetworkFailureException e) {
-            //TODO: La NetworkFailureException non dovrebbe essere mai lanciata dal localNode
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
