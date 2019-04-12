@@ -1,8 +1,11 @@
 package network.remoteNode;
 
 import network.exeptions.NetworkFailureException;
-import network.message.*;
-import utils.ChordResource;
+import network.message.reply.NodeReply;
+import network.message.reply.ReplyMessage;
+import network.message.reply.ResourceReply;
+import network.message.request.*;
+import resource.ChordResource;
 import node.Node;
 import node.exceptions.NodeNotFoundException;
 
@@ -49,18 +52,14 @@ public class RemoteNode implements Node, Closeable {
     }
 
     @Override
-    public Node findSuccessor(int id) throws NodeNotFoundException, NetworkFailureException {
+    public Node findSuccessor(int id) throws NetworkFailureException {
         try {
             if (closed)
                 setUpConnection();
-            RequestMessage msg = new RequestMessage(Message.FIND_SUCCESSOR, id);
-            Request request = outputBuffer.sendRequest(msg);
-            ReplyMessage reply = queue.submitRequest(request);
+            Request request = outputBuffer.sendRequest(new FindSuccessorRequest(id));
+            NodeReply reply = (NodeReply) queue.submitRequest(request);
 
-            if (reply.ip == null)
-                throw new NodeNotFoundException();
-            else
-                return new RemoteNode(reply.id, reply.ip, reply.port);
+            return new RemoteNode(reply.getId(), reply.getIp(), reply.getPort());
         }
         catch (NetworkFailureException e){
             e.setMessage("Failed to contact Node " + this.id + " on findSuccessor");
@@ -73,14 +72,10 @@ public class RemoteNode implements Node, Closeable {
         try {
             if (closed)
                 setUpConnection();
-            RequestMessage msg = new RequestMessage(Message.GET_PREDECESSOR);
+            RequestMessage msg = new GetPredecessorRequest();
             Request request = outputBuffer.sendRequest(msg);
-            ReplyMessage reply = queue.submitRequest(request);
-            if (reply.ip == null)
-                throw new NodeNotFoundException();
-            else {
-                return new RemoteNode(reply.id, reply.ip, reply.port);
-            }
+            NodeReply reply = (NodeReply) queue.submitRequest(request);
+            return new RemoteNode(reply.getId(), reply.getIp(), reply.getPort());
         } catch (NetworkFailureException e){
             e.setMessage("Failed to contact Node " + id + " on getPredecessor");
             throw e;
@@ -91,20 +86,17 @@ public class RemoteNode implements Node, Closeable {
     public Node getSuccessor() throws NetworkFailureException {
         if(closed)
             setUpConnection();
-        RequestMessage msg = new RequestMessage(Message.GET_SUCCESSOR);
+        RequestMessage msg = new GetSuccessorRequest();
         Request request = outputBuffer.sendRequest(msg);
-        ReplyMessage reply = queue.submitRequest(request);
-        if(reply.ip==null)
-            return null;
-        else
-            return new RemoteNode(reply.id, reply.ip, reply.port);
+        NodeReply reply = (NodeReply) queue.submitRequest(request);
+        return new RemoteNode(reply.getId(), reply.getIp(), reply.getPort());
     }
 
     @Override
     public void notifyPredecessor(Node n) throws NetworkFailureException {
         if(closed)
             setUpConnection();
-        RequestMessage msg = new RequestMessage(Message.NOTIFY_PREDECESSOR, n.getIp(), n.getPort(), n.getId());
+        RequestMessage msg = new NotifyPredecessorRequest(n);
         outputBuffer.sendRequest(msg);
     }
 
@@ -112,7 +104,7 @@ public class RemoteNode implements Node, Closeable {
     public void publish(ChordResource resource) throws NetworkFailureException {
         if(closed)
             setUpConnection();
-        PublishMessage msg = new PublishMessage(resource);
+        PublishRequest msg = new PublishRequest(resource);
         outputBuffer.sendRequest(msg);
     }
 
@@ -123,8 +115,8 @@ public class RemoteNode implements Node, Closeable {
         FetchMessage msg = new FetchMessage(name);
         Request request = outputBuffer.sendRequest(msg);
         ReplyMessage reply = queue.submitRequest(request);
-        if(reply instanceof ResourceMessage)
-            return ((ResourceMessage) reply).getResource();
+        if(reply instanceof ResourceReply)
+            return ((ResourceReply) reply).getResource();
         else return null;
     }
 

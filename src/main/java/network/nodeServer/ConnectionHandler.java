@@ -1,13 +1,9 @@
 package network.nodeServer;
 
-import network.exeptions.NetworkFailureException;
 import network.message.Message;
-import network.message.ReplyMessage;
-import network.message.RequestMessage;
-import network.remoteNode.RemoteNode;
+import network.message.reply.ReplyMessage;
+import network.message.request.RequestMessage;
 import node.LocalNode;
-import node.Node;
-import node.exceptions.NodeNotFoundException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -67,8 +63,10 @@ class ConnectionHandler implements Closeable {
     private void handleRequest(RequestMessage msg) {
         try {
             ReplyMessage reply = msg.handleRequest(localNode);
-            synchronized (this) {
-                oos.writeObject(reply);
+            if(reply!=null) {
+                synchronized (this) {
+                    oos.writeObject(reply);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

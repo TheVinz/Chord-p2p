@@ -1,7 +1,7 @@
 package network.remoteNode;
 
 import network.exeptions.NetworkFailureException;
-import network.message.ReplyMessage;
+import network.message.reply.ReplyMessage;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;

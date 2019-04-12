@@ -1,4 +1,6 @@
 
+import resource.RemoteResource;
+
 import java.util.Scanner;
 
 public class Main {
@@ -18,17 +20,10 @@ public class Main {
                     content=sc.next();
                     network.publish(name, content);
                     break;
-                case "fetch":
-                    name=sc.next();
-                    content=network.fetch(name);
-                    System.out.println(content);
-                    break;
-                case "fingertable":
-                    network.printFingertable();
-                    break;
                 case "find":
-                    int x = sc.nextInt();
-                    System.out.println(network.findSuccessor(x));
+                    name = sc.next();
+                    RemoteResource remoteResource = network.find(name);
+                    System.out.println(remoteResource.fetch().getContent());
                     break;
             }
         }

@@ -2,7 +2,7 @@ package node;
 
 import network.exeptions.NetworkFailureException;
 import node.exceptions.NodeNotFoundException;
-import utils.ChordResource;
+import resource.ChordResource;
 
 /**
  * Main abstraction of the concept of node as part of a Chord ring.

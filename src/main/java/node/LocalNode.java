@@ -3,11 +3,12 @@ package node;
 import network.exeptions.NetworkFailureException;
 import network.nodeServer.NodeServer;
 import node.exceptions.NodeNotFoundException;
-import utils.ChordResource;
+import resource.ChordResource;
 import utils.Util;
 
 import java.io.*;
 import java.util.Scanner;
+import java.util.concurrent.Semaphore;
 
 import static java.lang.Math.pow;
 import static utils.Util.M;
@@ -26,6 +27,7 @@ public class LocalNode implements Node{
     private int next = 0;
     private int id;
     private NodeServer nodeServer;
+
 
     /**
      * Constructs a Node by specifying its identifier id and initialising its finger table entries to <pre>null</pre>.
@@ -53,8 +55,8 @@ public class LocalNode implements Node{
     @Override
     public Node findSuccessor(int id) throws NodeNotFoundException {
         if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
+            Node temp = closestPrecedingFinger(id), res;
             try {
-                Node temp = closestPrecedingFinger(id), res;
                 res = temp.findSuccessor(id);
                 Util.closeNodeConnection(temp, fingerTable);
                 return res;

@@ -1,7 +1,7 @@
 package network.remoteNode;
 
 import network.message.Message;
-import network.message.ReplyMessage;
+import network.message.reply.ReplyMessage;
 
 import java.io.*;
 

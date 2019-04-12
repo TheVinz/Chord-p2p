@@ -1,17 +1,18 @@
 import network.exeptions.NetworkFailureException;
 import network.remoteNode.RemoteNode;
-import utils.ChordResource;
+import resource.ChordResource;
 import node.LocalNode;
 import node.Node;
 import node.exceptions.NodeNotFoundException;
+import resource.RemoteResource;
 import utils.Util;
 
-import java.io.Closeable;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class ChordNetwork implements Closeable {
+public class ChordNetwork {
     private static final String ANCHOR_IP = "localhost";
     private static final int ANCHOR_PORT = 8888;
     private static final int ANCHOR_ID = 0;
@@ -21,7 +22,7 @@ public class ChordNetwork implements Closeable {
 
     public void join(String ip, int port){
         RemoteNode anchor = new RemoteNode(ANCHOR_ID, ANCHOR_IP, ANCHOR_PORT);
-        int id= 0;
+        int id;
         try {
             id = calculateDigest(ip +":"+port);
             System.out.println("id: " + id);
@@ -33,33 +34,36 @@ public class ChordNetwork implements Closeable {
         node = new LocalNode(id, ip, port);
 
         try {
-            anchor.setUpConnection();
             node.join(anchor);
         } catch (NetworkFailureException | NodeNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    public void publish(String title, String content){
+    public synchronized void publish(String title, String content){
         try {
             int id = calculateDigest(title);
             Node n = node.findSuccessor(id);
             n.publish(new ChordResource(title, content));
-        } catch (NoSuchAlgorithmException | NetworkFailureException | NodeNotFoundException e) {
+            if (n instanceof RemoteNode)
+                ((RemoteNode) n).close();
+        } catch (NoSuchAlgorithmException | NetworkFailureException | NodeNotFoundException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    public String fetch(String title){
-        try {
-            int id = calculateDigest(title);
-            Node n = node.findSuccessor(id);
-            return n.fetch(title).getContent();
-        } catch (NoSuchAlgorithmException | NodeNotFoundException | NetworkFailureException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public synchronized RemoteResource find(String title){
+            try {
+                synchronized (this) {
+                    int id = calculateDigest(title);
+                    return new RemoteResource(node, title, id);
+                }
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+                return null;
+            }
     }
+
 
     private int calculateDigest(String obj) throws NoSuchAlgorithmException {
         int res, mod= (int) Math.pow(2, Util.M-1);
@@ -70,21 +74,5 @@ public class ChordNetwork implements Closeable {
         return res;
     }
 
-    public void printFingertable(){
-        node.getFingerTable().print();
-    }
 
-    @Override
-    public void close() {
-        closed=true;
-    }
-
-    public int findSuccessor(int x) {
-        try {
-            return node.findSuccessor(x).getId();
-        } catch (NodeNotFoundException e) {
-            e.printStackTrace();
-            return 0;
-        }
-    }
 }

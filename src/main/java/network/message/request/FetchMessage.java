@@ -1,5 +1,7 @@
-package network.message;
+package network.message.request;
 
+import network.message.reply.ReplyMessage;
+import network.message.reply.ResourceReply;
 import node.LocalNode;
 
 public class FetchMessage extends RequestMessage {
@@ -16,6 +18,6 @@ public class FetchMessage extends RequestMessage {
 
     @Override
     public ReplyMessage handleRequest(LocalNode node) {
-        return new ResourceMessage(node.fetch(name));
+        return new ResourceReply(node.fetch(name));
     }
 }

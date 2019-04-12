@@ -1,10 +1,10 @@
-package utils;
+package resource;
 
 import java.io.Serializable;
 
 public class ChordResource implements Serializable {
 
-    private String title, content;
+    private final String title, content;
 
     public ChordResource(String title, String content){
         this.title=title;
@@ -17,13 +17,5 @@ public class ChordResource implements Serializable {
 
     public String getContent() {
         return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 }

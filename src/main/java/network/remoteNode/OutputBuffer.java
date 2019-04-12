@@ -1,13 +1,11 @@
 package network.remoteNode;
 
 import network.exeptions.NetworkFailureException;
-import network.message.RequestMessage;
+import network.message.request.RequestMessage;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.Socket;
 
 class OutputBuffer implements Closeable {
 
@@ -31,7 +29,6 @@ class OutputBuffer implements Closeable {
             e.printStackTrace();
             throw new NetworkFailureException();
         }
-
         return new Request(requestId);
     }
 
