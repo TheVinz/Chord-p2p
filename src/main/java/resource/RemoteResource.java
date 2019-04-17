@@ -6,14 +6,11 @@ import node.LocalNode;
 import node.Node;
 import node.exceptions.NodeNotFoundException;
 
-import java.io.IOException;
-
 public class RemoteResource {
 
     private final String name;
     private final int id;
     private ChordResource resource=null;
-    private Node node;
     private final LocalNode localNode;
 
     public RemoteResource(LocalNode localNode, String name, int id){
@@ -22,15 +19,12 @@ public class RemoteResource {
         this.localNode=localNode;
     }
 
-    private void find(){
+    private Node find(){
         try {
-            if(node instanceof RemoteNode)
-                ((RemoteNode) node).close();
-            node = localNode.findSuccessor(id);
-            if(node instanceof RemoteNode)
-                ((RemoteNode) node).close();
-        } catch (NodeNotFoundException | IOException e) {
+             return localNode.findSuccessor(id);
+        } catch (NodeNotFoundException e) {
             e.printStackTrace();
+            return find();
         }
     }
 
@@ -38,15 +32,12 @@ public class RemoteResource {
         if(resource != null)
             return resource;
         try {
-            find();
+            Node node = find();
             resource = node.fetch(name);
             if(node instanceof RemoteNode)
                 ((RemoteNode) node).close();
         } catch (NetworkFailureException e) {
-            find();
-            fetch();
-        } catch (IOException e) {
-            e.printStackTrace();
+            return fetch();
         }
         if(resource==null)
             return fetch();

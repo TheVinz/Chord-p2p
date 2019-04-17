@@ -3,12 +3,12 @@ package network.remoteNode;
 import network.exeptions.NetworkFailureException;
 import network.message.reply.ReplyMessage;
 
-import java.util.ArrayDeque;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 class PendingRequestQueue {
 
-    private ArrayDeque<Request> pendingRequests = new ArrayDeque<>();
+    private ConcurrentLinkedDeque<Request> pendingRequests = new ConcurrentLinkedDeque<>();
 
     void handleReplyMessage(ReplyMessage msg){
         Iterator<Request> iterator = pendingRequests.descendingIterator();
@@ -17,7 +17,7 @@ class PendingRequestQueue {
             req=iterator.next();
             if(req.getRequestId()==msg.getRequestId()){
                 req.setReplyMessage(msg);
-                break;
+                return;
             }
         }
     }
@@ -40,6 +40,11 @@ class PendingRequestQueue {
             throw new NetworkFailureException();
         else
             return request.getReplyMessage();
+    }
+
+    void close(){
+        for(Request r : pendingRequests)
+            r.delete();
     }
 
 

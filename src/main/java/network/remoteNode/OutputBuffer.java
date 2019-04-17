@@ -7,7 +7,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-class OutputBuffer implements Closeable {
+class OutputBuffer {
 
     private final ObjectOutputStream oos;
     private boolean closed=false;

@@ -20,7 +20,7 @@ import java.net.Socket;
  * This class is the abstraction of a node that lives in a remote machine.
  * So each method will resolve remotely on the other machine and eventually returns to the local client.
  */
-public class RemoteNode implements Node, Closeable {
+public class RemoteNode implements Node {
 
     private final int id;
     private final String ip;
@@ -38,13 +38,13 @@ public class RemoteNode implements Node, Closeable {
         this.port=port;
     }
 
-    public void setUpConnection() throws NetworkFailureException {
+    private void setUpConnection() throws NetworkFailureException {
         try {
             this.socket=new Socket(ip, port);
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
             outputBuffer=new OutputBuffer(oos);
-            inputBuffer= new InputBuffer(ois, queue);
+            inputBuffer= new InputBuffer(ois, queue, this.id);
             closed=false;
         } catch (IOException e) {
             throw new NetworkFailureException();
@@ -68,7 +68,7 @@ public class RemoteNode implements Node, Closeable {
     }
 
     @Override
-    public Node getPredecessor() throws NodeNotFoundException, NetworkFailureException {
+    public Node getPredecessor() throws NetworkFailureException {
         try {
             if (closed)
                 setUpConnection();
@@ -138,13 +138,14 @@ public class RemoteNode implements Node, Closeable {
         return ip;
     }
 
-    @Override
-    public void close() throws IOException {
-        if(!closed) {
-            inputBuffer.close();
-            outputBuffer.close();
-            socket.close();
-            closed = true;
+    public void close() {
+        try {
+            if (!closed) {
+                socket.close();
+                closed = true;
+            }
+        } catch (IOException e){
+            e.printStackTrace();
         }
     }
 }

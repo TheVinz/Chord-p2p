@@ -2,17 +2,15 @@ package node;
 
 import network.exeptions.NetworkFailureException;
 import network.nodeServer.NodeServer;
+import network.remoteNode.RemoteNode;
 import node.exceptions.NodeNotFoundException;
 import resource.ChordResource;
-import utils.Util;
 
 import java.io.*;
 import java.util.Scanner;
-import java.util.concurrent.Semaphore;
 
 import static java.lang.Math.pow;
 import static utils.Util.M;
-import static utils.Util.closeNodeConnection;
 import static utils.Util.isInsideInterval;
 
 /**
@@ -54,12 +52,11 @@ public class LocalNode implements Node{
 
     @Override
     public Node findSuccessor(int id) throws NodeNotFoundException {
-        if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
-            Node temp = closestPrecedingFinger(id), res;
+        if(isInsideInterval(id, predecessor.getId(), getId()))
+            return this;
+        else if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
             try {
-                res = temp.findSuccessor(id);
-                Util.closeNodeConnection(temp, fingerTable);
-                return res;
+                return closestPrecedingFinger(id).findSuccessor(id);
             } catch (NetworkFailureException e){
                 e.printStackTrace();
             }
@@ -95,16 +92,21 @@ public class LocalNode implements Node{
 
     @Override
     public void notifyPredecessor(Node n) {
+        if(getPredecessor().getId() == n.getId())
+            return;
         // TODO getPredecessor() would never be null since we initialize it as this
-        if(getPredecessor() == null || isInsideInterval(n.getId(), getPredecessor().getId(), this.getId()))
+        if(getPredecessor() == null || isInsideInterval(n.getId(), getPredecessor().getId(), this.getId())) {
+            if (getPredecessor() instanceof RemoteNode)
+                ((RemoteNode) getPredecessor()).close();
             setPredecessor(n);
+        }
     }
 
     @Override
     public void publish(ChordResource resource) {
-        File file = new File("data/"+resource.getTitle());
+        File file = new File("data/node_"+this.id + "/" +resource.getTitle());
         if(!file.exists()) {
-            file.getParentFile().mkdir();
+            file.getParentFile().mkdirs();
         }
         try(PrintWriter writer = new PrintWriter(new FileOutputStream(file))) {
             writer.print(resource.getContent());
@@ -115,7 +117,7 @@ public class LocalNode implements Node{
 
     @Override
     public ChordResource fetch(String name) {
-        File file = new File("data/"+name);
+        File file = new File("data/node_"+this.id + "/" +name);
         if(!file.exists())
             return new ChordResource(name, "");
         else{
@@ -140,7 +142,6 @@ public class LocalNode implements Node{
             if(isInsideInterval(x.getId(), this.getId(), this.getSuccessor().getId()))
                 setSuccessor(x);
             getSuccessor().notifyPredecessor(this);
-            closeNodeConnection(x, fingerTable);
         } catch (NodeNotFoundException | NetworkFailureException e) {
             e.printStackTrace();
         }
@@ -178,9 +179,9 @@ public class LocalNode implements Node{
      */
     public void join(Node n) throws NodeNotFoundException, NetworkFailureException {
         setPredecessor(this);
-        setSuccessor(n.findSuccessor(this.getId()));
+        Node successor = n.findSuccessor(getId());
         for(int i=0; i<M; i++){
-            fingerTable.setNode(i, n);
+            fingerTable.setNode(i, successor);
         }
     }
 

@@ -23,11 +23,7 @@ public abstract class Util {
     public static void closeNodeConnection(Node n, FingerTable fingerTable){
         if(n instanceof RemoteNode){
             if(!fingerTable.contains(n)) {
-                try {
-                    ((RemoteNode) n).close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                ((RemoteNode) n).close();
             }
         }
     }

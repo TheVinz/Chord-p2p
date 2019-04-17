@@ -35,6 +35,7 @@ public class ChordNetwork {
 
         try {
             node.join(anchor);
+            anchor.close();
         } catch (NetworkFailureException | NodeNotFoundException e) {
             e.printStackTrace();
         }
@@ -47,7 +48,7 @@ public class ChordNetwork {
             n.publish(new ChordResource(title, content));
             if (n instanceof RemoteNode)
                 ((RemoteNode) n).close();
-        } catch (NoSuchAlgorithmException | NetworkFailureException | NodeNotFoundException | IOException e) {
+        } catch (NoSuchAlgorithmException | NetworkFailureException | NodeNotFoundException e) {
             e.printStackTrace();
         }
     }

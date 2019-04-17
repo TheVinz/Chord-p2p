@@ -2,7 +2,6 @@ package network.remoteNode;
 
 import network.message.reply.ReplyMessage;
 
-import java.util.concurrent.Semaphore;
 
 
 class Request {
@@ -13,12 +12,12 @@ class Request {
     private ReplyMessage replyMessage=null;
     private boolean done=false;
     private boolean failed=false;
-    private Thread timeout;
+    //private Thread timeout;
 
     Request(int requestId){
         this.requestId=requestId;
-        timeout = new Thread(this::timer);
-        timeout.start();
+        //timeout = new Thread(this::timer);
+        //timeout.start();
     }
 
     int getRequestId() {
@@ -29,7 +28,7 @@ class Request {
         if(!done) {
             this.replyMessage = replyMessage;
             setDone();
-            timeout.interrupt();
+            //timeout.interrupt();
             notifyAll();
         }
     }
@@ -42,7 +41,7 @@ class Request {
         return replyMessage;
     }
 
-    private synchronized void delete(){
+    synchronized void delete(){
         if(!done) {
             this.failed = true;
             setDone();
