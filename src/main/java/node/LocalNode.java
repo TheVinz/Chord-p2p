@@ -61,7 +61,7 @@ public class LocalNode implements Node{
                 e.printStackTrace();
             }
         }
-        return getSuccessor();
+        return new RemoteNode(getSuccessor().getId(), getSuccessor().getIp(), getSuccessor().getPort());
     }
 
     public Node closestPrecedingFinger(int id) {

@@ -27,7 +27,7 @@ class ConnectionHandler implements Closeable {
         try {
             while (!closed) {
                 RequestMessage in = (RequestMessage) ois.readObject();
-                handleRequest(in);
+                new Thread(() -> handleRequest(in)).start();
             }
         } catch (EOFException e){
             close();
@@ -39,7 +39,7 @@ class ConnectionHandler implements Closeable {
         }
     }
 
-    private void handleRequest(RequestMessage msg) {
+    private synchronized void handleRequest(RequestMessage msg) {
         try {
             ReplyMessage reply = msg.handleRequest(localNode);
             if(reply==null)
