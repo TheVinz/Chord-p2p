@@ -7,9 +7,8 @@ import network.message.reply.ResourceReply;
 import network.message.request.*;
 import resource.ChordResource;
 import node.Node;
-import node.exceptions.NodeNotFoundException;
 
-import java.io.Closeable;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -26,9 +25,8 @@ public class RemoteNode implements Node {
     private final String ip;
     private final int port;
     private Socket socket;
-    private InputBuffer inputBuffer;
     private OutputBuffer outputBuffer;
-    private PendingRequestQueue queue= new PendingRequestQueue();
+    private PendingRequestQueue queue;
     private boolean closed=true;
 
 
@@ -40,13 +38,15 @@ public class RemoteNode implements Node {
 
     private void setUpConnection() throws NetworkFailureException {
         try {
+            this.queue=new PendingRequestQueue();
             this.socket=new Socket(ip, port);
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
             outputBuffer=new OutputBuffer(oos);
-            inputBuffer= new InputBuffer(ois, queue, this.id);
+            new InputBuffer(ois, queue, this.id);
             closed=false;
         } catch (IOException e) {
+            e.printStackTrace();
             throw new NetworkFailureException();
         }
     }
@@ -142,6 +142,7 @@ public class RemoteNode implements Node {
         try {
             if (!closed) {
                 socket.close();
+                queue.close();
                 closed = true;
             }
         } catch (IOException e){

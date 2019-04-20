@@ -2,22 +2,20 @@ package network.remoteNode;
 
 import network.message.reply.ReplyMessage;
 
+import java.util.Calendar;
 
 
 class Request {
-
-    private static final long REQUEST_TIMEOUT=10000L;
 
     private final int requestId;
     private ReplyMessage replyMessage=null;
     private boolean done=false;
     private boolean failed=false;
-    //private Thread timeout;
+    private final long timestamp;
 
     Request(int requestId){
         this.requestId=requestId;
-        //timeout = new Thread(this::timer);
-        //timeout.start();
+        timestamp=Calendar.getInstance().getTimeInMillis();
     }
 
     int getRequestId() {
@@ -59,13 +57,7 @@ class Request {
         }
     }
 
-    private void timer(){
-        try {
-            Thread.sleep(REQUEST_TIMEOUT);
-        } catch (InterruptedException e) {
-            return;
-        }
-
-        delete();
+    public long getTimestamp() {
+        return timestamp;
     }
 }

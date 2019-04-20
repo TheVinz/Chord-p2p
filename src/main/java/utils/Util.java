@@ -17,15 +17,7 @@ public abstract class Util {
             return id > start || id < end;
         }
         else if(start < end) return id > start && id < end;
-        else return id != start; //
-    }
-
-    public static void closeNodeConnection(Node n, FingerTable fingerTable){
-        if(n instanceof RemoteNode){
-            if(!fingerTable.contains(n)) {
-                ((RemoteNode) n).close();
-            }
-        }
+        else return id!=start; //
     }
 
 }

@@ -25,6 +25,7 @@ public class LocalNode implements Node{
     private int next = 0;
     private int id;
     private NodeServer nodeServer;
+    private final static long STABILIZE_TIMEOUT=500L;
 
 
     /**
@@ -54,17 +55,17 @@ public class LocalNode implements Node{
     public Node findSuccessor(int id) throws NodeNotFoundException {
         if(isInsideInterval(id, predecessor.getId(), getId()))
             return this;
-        else if(!isInsideInterval(id, this.getId(), this.getSuccessor().getId()) && id != this.getSuccessor().getId()){
+        else if(!isInsideInterval(id, this.getId(), fingerTable.getSuccessor().getId()) && id != fingerTable.getSuccessor().getId()){
             try {
                 return closestPrecedingFinger(id).findSuccessor(id);
             } catch (NetworkFailureException e){
                 e.printStackTrace();
             }
         }
-        return new RemoteNode(getSuccessor().getId(), getSuccessor().getIp(), getSuccessor().getPort());
+        return getSuccessor();
     }
 
-    public Node closestPrecedingFinger(int id) {
+    private Node closestPrecedingFinger(int id) {
         for(int i=M-1; i>=0; i--) {
             if (isInsideInterval(fingerTable.getNode(i).getId(), this.getId(), id))
                 return fingerTable.getNode(i);
@@ -74,11 +75,14 @@ public class LocalNode implements Node{
 
     @Override
     public Node getSuccessor() {
-            return fingerTable.getNode(0);
+            Node n = fingerTable.getSuccessor();
+            return new RemoteNode(n.getId(), n.getIp(), n.getPort());
     }
 
-    public void setSuccessor(Node n){
-        fingerTable.setNode(0, n);
+    private void setSuccessor(Node n){
+        if(n.getId() != fingerTable.getSuccessor().getId()) {
+            fingerTable.setNode(0, n);
+        }
     }
 
     @Override
@@ -86,7 +90,7 @@ public class LocalNode implements Node{
         return predecessor;
     }
 
-    synchronized public void setPredecessor(Node predecessor) {
+    private synchronized void setPredecessor(Node predecessor) {
         this.predecessor = predecessor;
     }
 
@@ -135,19 +139,19 @@ public class LocalNode implements Node{
      * Stabilization procedures
      */
 
-    public void stabilize(){
+    private void stabilize(){
 
         try {
-            Node x = getSuccessor().getPredecessor();
-            if(isInsideInterval(x.getId(), this.getId(), this.getSuccessor().getId()))
+            Node x = fingerTable.getSuccessor().getPredecessor();
+            if(isInsideInterval(x.getId(), this.getId(), fingerTable.getSuccessor().getId()))
                 setSuccessor(x);
-            getSuccessor().notifyPredecessor(this);
+            fingerTable.getSuccessor().notifyPredecessor(this);
         } catch (NodeNotFoundException | NetworkFailureException e) {
             e.printStackTrace();
         }
     }
 
-    public void fixFingers(){
+    private void fixFingers(){
         next = next + 1;
         if(next >= M)
             next = 0;
@@ -191,7 +195,7 @@ public class LocalNode implements Node{
             stabilize();
             fixFingers();
             try {
-                Thread.sleep(3000);
+                Thread.sleep(STABILIZE_TIMEOUT);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 return;
