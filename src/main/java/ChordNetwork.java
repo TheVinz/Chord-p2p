@@ -41,7 +41,7 @@ public class ChordNetwork {
         }
     }
 
-    public synchronized void publish(String title, String content){
+    public void publish(String title, String content){
         try {
             int id = calculateDigest(title);
             Node n = node.findSuccessor(id);
@@ -53,7 +53,7 @@ public class ChordNetwork {
         }
     }
 
-    public synchronized RemoteResource find(String title){
+    public RemoteResource find(String title){
             try {
                 synchronized (this) {
                     int id = calculateDigest(title);

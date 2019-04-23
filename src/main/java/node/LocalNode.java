@@ -53,11 +53,12 @@ public class LocalNode implements Node{
 
     @Override
     public Node findSuccessor(int id) throws NodeNotFoundException {
-        if(isInsideInterval(id, predecessor.getId(), getId()))
-            return this;
-        else if(!isInsideInterval(id, this.getId(), fingerTable.getSuccessor().getId()) && id != fingerTable.getSuccessor().getId()){
+        if(!isInsideInterval(id, this.getId(), fingerTable.getSuccessor().getId()) && id != fingerTable.getSuccessor().getId()){
             try {
-                return closestPrecedingFinger(id).findSuccessor(id);
+                Node result = closestPrecedingFinger(id).findSuccessor(id);
+                if(result.getId()==getId())
+                    result=this;
+                return result;
             } catch (NetworkFailureException e){
                 e.printStackTrace();
             }
