@@ -1,9 +1,10 @@
 import network.exeptions.NetworkFailureException;
+import network.nodeServer.NodeServer;
 import network.remoteNode.RemoteNode;
-import resource.ChordResource;
-import node.LocalNode;
 import node.Node;
+import node.StabilizerNode;
 import node.exceptions.NodeNotFoundException;
+import resource.ChordResource;
 import resource.RemoteResource;
 import utils.Util;
 
@@ -13,15 +14,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class ChordNetwork {
-    private static final String ANCHOR_IP = "localhost";
+    private static final String ANCHOR_IP = "localhost"; // TODO set externally
     private static final int ANCHOR_PORT = 8888;
     private static final int ANCHOR_ID = 0;
 
-    private LocalNode node;
+    private StabilizerNode node;
+    private NodeServer server;
     private boolean closed = false;
 
-    public void join(String ip, int port){
-        RemoteNode anchor = new RemoteNode(ANCHOR_ID, ANCHOR_IP, ANCHOR_PORT);
+    public void join(String ip, int port) {
+        Node anchor = new RemoteNode(ANCHOR_ID, ANCHOR_IP, ANCHOR_PORT);
         int id;
         try {
             id = calculateDigest(ip +":"+port);
@@ -31,10 +33,14 @@ public class ChordNetwork {
             return;
         }
 
-        node = new LocalNode(id, ip, port);
-
         try {
-            node.join(anchor);
+            node = Util.createDefaultStabilizerNode(id, anchor, ip, port, new long[]{500, 800}, new long[]{250, 250});
+            node.start();
+            try {
+                server = new NodeServer(node, ip, port);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             anchor.close();
         } catch (NetworkFailureException | NodeNotFoundException e) {
             e.printStackTrace();
@@ -46,23 +52,22 @@ public class ChordNetwork {
             int id = calculateDigest(title);
             Node n = node.findSuccessor(id);
             n.publish(new ChordResource(title, content));
-            if (n instanceof RemoteNode)
-                ((RemoteNode) n).close();
+            n.close();
         } catch (NoSuchAlgorithmException | NetworkFailureException | NodeNotFoundException e) {
             e.printStackTrace();
         }
     }
 
     public RemoteResource find(String title){
-            try {
-                synchronized (this) {
-                    int id = calculateDigest(title);
-                    return new RemoteResource(node, title, id);
-                }
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-                return null;
+        try {
+            synchronized (this) {
+                int id = calculateDigest(title);
+                return new RemoteResource(node, title, id);
             }
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

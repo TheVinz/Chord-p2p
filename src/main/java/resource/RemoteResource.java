@@ -1,7 +1,6 @@
 package resource;
 
 import network.exeptions.NetworkFailureException;
-import network.remoteNode.RemoteNode;
 import node.LocalNode;
 import node.Node;
 import node.exceptions.NodeNotFoundException;
@@ -13,33 +12,32 @@ public class RemoteResource {
     private ChordResource resource=null;
     private final LocalNode localNode;
 
-    public RemoteResource(LocalNode localNode, String name, int id){
+    public RemoteResource(LocalNode localNode, String name, int id) {
         this.name = name;
         this.id = id;
-        this.localNode=localNode;
+        this.localNode = localNode;
     }
 
-    private Node find(){
+    private Node find() {
         try {
              return localNode.findSuccessor(id);
         } catch (NodeNotFoundException e) {
             e.printStackTrace();
-            return find();
+            return find(); // TODO why loop?
         }
     }
 
-    public ChordResource fetch(){
+    public ChordResource fetch() {
         if(resource != null)
             return resource;
         try {
             Node node = find();
             resource = node.fetch(name);
-            if(node instanceof RemoteNode)
-                ((RemoteNode) node).close();
+            node.close();
         } catch (NetworkFailureException e) {
             return fetch();
         }
-        if(resource==null)
+        if(resource == null)
             return fetch();
         else return resource;
     }

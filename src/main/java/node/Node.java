@@ -51,6 +51,7 @@ public interface Node {
 
     ChordResource fetch(String name) throws NetworkFailureException;
 
+
     /**
      * Gets the identifier of this node.
      * @return this node's identifier.
@@ -68,4 +69,17 @@ public interface Node {
      * @return the node's IP address
      */
     String getIp();
+
+    /**
+     * Closes the node communication.
+     * The node might get unavailable, check concrete implementation of this method
+     */
+    void close(); // TODO consider using AutoClosable interface
+
+    /**
+     * Wraps the current node. The node returned is semantically a copy
+     * such that it's safer to be returned externally of Node rather than <pre>this</pre>.
+     * @return the copy of this node
+     */
+    Node wrap();
 }
