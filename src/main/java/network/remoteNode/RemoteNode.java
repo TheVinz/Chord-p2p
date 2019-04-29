@@ -4,10 +4,15 @@ import network.exeptions.NetworkFailureException;
 import network.message.reply.NodeReply;
 import network.message.reply.ReplyMessage;
 import network.message.reply.ResourceReply;
-import network.message.request.*;
-import resource.ChordResource;
+import network.message.request.RequestMessage;
+import network.message.request.FetchMessage;
+import network.message.request.FindSuccessorRequest;
+import network.message.request.GetPredecessorRequest;
+import network.message.request.GetSuccessorRequest;
+import network.message.request.NotifyPredecessorRequest;
+import network.message.request.PublishRequest;
 import node.Node;
-
+import resource.ChordResource;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -100,7 +105,7 @@ public class RemoteNode implements Node {
         outputBuffer.sendRequest(msg);
     }
 
-    @Override
+
     public void publish(ChordResource resource) throws NetworkFailureException {
         if(closed)
             setUpConnection();
@@ -108,7 +113,7 @@ public class RemoteNode implements Node {
         outputBuffer.sendRequest(msg);
     }
 
-    @Override
+
     public ChordResource fetch(String name) throws NetworkFailureException {
         if(closed)
             setUpConnection();
@@ -138,6 +143,11 @@ public class RemoteNode implements Node {
         return ip;
     }
 
+    /**
+     * Close sockets and communication devices.
+     * The node cannot communicate anymore.
+     */
+    @Override
     public void close() {
         try {
             if (!closed) {
@@ -146,7 +156,17 @@ public class RemoteNode implements Node {
                 closed = true;
             }
         } catch (IOException e){
+            // TODO understand logging or re-throwing
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Making a copy of this node with only the final attributes.
+     * @return a copy of this node with same id, ip and port
+     */
+    @Override
+    public Node wrap() {
+        return new RemoteNode(getId(), getIp(), getPort());
     }
 }
