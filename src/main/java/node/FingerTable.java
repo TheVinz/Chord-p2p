@@ -29,18 +29,32 @@ public class FingerTable {
 
     void setNode(int index, Node n) {
         Objects.requireNonNull(n);
-        Node old = entries[index].getNode();
+        Node old = entries[index].getNode(), newNode=null;
 
         if(old.getId() == n.getId())
             return;
 
-        if(!contains(n))
-            entries[index].setNode(n);
+        // Search if n alredy present
+        for(int i=0; i<entries.length && newNode==null; i++){
+            if(entries[i].getNode().getId()==n.getId())
+                // then re-use the instance
+                newNode=entries[i].getNode();
+        }
 
+        // In case there wasn't
+        if(newNode == null) {
+            newNode = n;
+        }
+
+        // Insert the instance
+        entries[index].setNode(newNode);
+
+        // search for the old node in index-th position
         for(FingerTableEntry entry : entries)
             if(entry.getNode().getId() == old.getId())
+                // found it in other position, don't close it
                 return;
-        old.close();
+        old.close(); // not other instances of the old one
     }
 
     Node getSuccessor() {
@@ -58,10 +72,6 @@ public class FingerTable {
                 return Optional.ofNullable(entry.getNode());
         }
         return Optional.empty();
-    }
-
-    private boolean contains(Node n){
-        return findNodeById(n.getId()).isPresent();
     }
 
     FingerTableEntry getFingerTableEntry(int index) {

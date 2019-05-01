@@ -60,8 +60,7 @@ public class LocalNode implements Node{
         this.id = id;
         this.host = host;
         this.port = port;
-        fingerTable = new FingerTable(this, n);
-        setSuccessor(n.findSuccessor(id));
+        fingerTable = new FingerTable(this, n.findSuccessor(id));
     }
 
     public LocalNode(int id, Node n) throws NodeNotFoundException, NetworkFailureException {
