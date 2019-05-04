@@ -1,9 +1,6 @@
-package test;
+package node;
 
 import network.exeptions.NetworkFailureException;
-import node.Node;
-import node.StabilizerNode;
-import node.exceptions.FingerTableEmptyException;
 import node.exceptions.NodeNotFoundException;
 
 import java.util.ArrayList;
@@ -24,7 +21,16 @@ public class SimpleTester {
     private StabilizerNode stabilizerSource;
     private TestNode testSource;
 
-    public void test() throws FingerTableEmptyException, NodeNotFoundException, NetworkFailureException {
+    public static void main(String[] args) {
+        SimpleTester tester = new SimpleTester();
+        try {
+            tester.test();
+        } catch (NodeNotFoundException | NetworkFailureException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void test() throws NodeNotFoundException, NetworkFailureException {
         setup();
         checkSuccessor(stabilizerSource, testSource);
         checkFingerTable(stabilizerNodes, testNodes);
@@ -66,6 +72,10 @@ public class SimpleTester {
         return createDefaultStabilizerNode(id, delays, periods, false);
     }
 
+    public StabilizerNode createStabilizerNode(int id, Node node, long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+        return createDefaultStabilizerNode(id, node, delays, periods, false);
+    }
+
     private void setup() {
         Edge[][] map = new Edge[1][2];
         int n = (int) Math.pow(2,M);
@@ -75,12 +85,10 @@ public class SimpleTester {
         booleans[0] = false;
 
         stabilizerSource = createStabilizerNode(0, delays, periods);
-        stabilizerSource.create();
         stabilizerSource.start();
         stabilizerNodes.add(stabilizerSource);
 
         testSource = new TestNode(0);
-        testSource.create();
         testNodes.add(testSource);
 
         Random rnd = new Random(9);
@@ -94,19 +102,18 @@ public class SimpleTester {
             while(id == 0)
                 id = rnd.nextInt(n);
             if(booleans[id]) {
-                StabilizerNode stabilizerNode = createStabilizerNode(id, delays, periods);
-                stabilizerNodes.add(stabilizerNode);
                 TestNode testNode = new TestNode(id);
                 testNodes.add(testNode);
                 boolean correctJoin = false;
                 while(!correctJoin) {
                     try {
-                        stabilizerNode.join(stabilizerSource);
+                        StabilizerNode stabilizerNode = createStabilizerNode(id, stabilizerSource, delays, periods);
+                        stabilizerNodes.add(stabilizerNode);
                         stabilizerNode.start();
                         testNode.join(testSource);
                         correctJoin = true;
 
-                    } catch (FingerTableEmptyException | NodeNotFoundException | NetworkFailureException e) {
+                    } catch (NodeNotFoundException | NetworkFailureException e) {
                         e.printStackTrace();
                         System.err.println("Sorry, join of node "+id+" failed.\nTry again...\n");
                         try {
@@ -130,9 +137,7 @@ public class SimpleTester {
         }
         try {
             checkTesterCorrectness();
-        } catch (NodeNotFoundException e) {
-            e.printStackTrace();
-        } catch (NetworkFailureException e) {
+        } catch (NodeNotFoundException | NetworkFailureException e) {
             e.printStackTrace();
         }
     }
@@ -142,7 +147,7 @@ public class SimpleTester {
             ((StabilizerNode)node).stop();
     }
 
-    public void checkFingerTable(List<Node> stabilizerNodes, List<Node> testNodes) throws FingerTableEmptyException {
+    public void checkFingerTable(List<Node> stabilizerNodes, List<Node> testNodes) {
         for(int i=0; i<stabilizerNodes.size(); i++){
             for(int j=0; j<M; j++){
                 int id1 = ((StabilizerNode) stabilizerNodes.get(i)).getFingerTableEntry(j).getNode().getId();

@@ -1,8 +1,6 @@
-package test;
+package node;
 
 import network.exeptions.NetworkFailureException;
-import node.*;
-import node.exceptions.FingerTableEmptyException;
 import node.exceptions.NodeNotFoundException;
 import utils.Util;
 
@@ -13,7 +11,7 @@ import java.util.function.Consumer;
  *
  * So far we are assuming that if a node fails, then it cannot contact/be contacted with/from anyone.
  */
-public class FailingNode extends FailureHandlerNode {
+public class FailingNode extends StabilizerNode {
     private boolean hasFailed;
 
     /**
@@ -27,6 +25,11 @@ public class FailingNode extends FailureHandlerNode {
      */
     public FailingNode(int id, Consumer<LocalNode>[] tasks, String[] labels, long[] delays, long[] periods) {
         super(id, tasks, labels, delays, periods);
+        hasFailed = false;
+    }
+
+    public FailingNode(int id, Node node, Consumer<LocalNode>[] tasks, String[] labels, long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+        super(id, node, tasks, labels, delays, periods);
         hasFailed = false;
     }
 
@@ -46,9 +49,9 @@ public class FailingNode extends FailureHandlerNode {
      */
 
     @Override
-    public Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException {
+    public Node findSuccessor(int id) throws NodeNotFoundException, NetworkFailureException {
         if(!hasFailed)
-            return super.findSuccessor(id, callTracker);
+            return super.findSuccessor(id);
         throw new NetworkFailureException();
     }
 
