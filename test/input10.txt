@@ -1,0 +1,20 @@
+publish file_0 content_of_file_0
+publish file_1 content_of_file_1
+publish file_2 content_of_file_2
+publish file_3 content_of_file_3
+publish file_4 content_of_file_4
+publish file_5 content_of_file_5
+publish file_6 content_of_file_6
+publish file_7 content_of_file_7
+publish file_8 content_of_file_8
+publish file_9 content_of_file_9
+find file_0
+find file_1
+find file_2
+find file_3
+find file_4
+find file_5
+find file_6
+find file_7
+find file_8
+find file_9

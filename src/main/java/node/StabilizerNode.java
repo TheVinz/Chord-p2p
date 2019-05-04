@@ -1,5 +1,8 @@
 package node;
 
+import network.exeptions.NetworkFailureException;
+import node.exceptions.NodeNotFoundException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -13,7 +16,7 @@ import java.util.function.Consumer;
  */
 public class StabilizerNode extends LocalNode {
 
-    private final List<PeriodicAction> periodicActions;
+    private final List<PeriodicAction> periodicActions = new ArrayList<>();
     private boolean running;
 
     /**
@@ -28,18 +31,69 @@ public class StabilizerNode extends LocalNode {
     public StabilizerNode(int id, Consumer<LocalNode>[] tasks, String[] labels,
                           long[] delays, long[] periods) {
         super(id);
+        initPeriodicActions(tasks, labels, delays, periods);
+    }
 
-        if (tasks.length != delays.length ||
-                tasks.length != periods.length ||
-                tasks.length != labels.length)
-            throw new IllegalArgumentException("StabilizerNode(): three arrays' lengths must be the same");
+    public StabilizerNode(int id, String host, int port,
+                          Consumer<LocalNode>[] tasks, String[] labels,
+                          long[] delays, long[] periods) {
+        super(id, host, port);
+        initPeriodicActions(tasks, labels, delays, periods);
+    }
 
-        this.periodicActions = new ArrayList<>();
+    /**
+     * Constructs a Node specifying the periodic actions to execute in order to stabilize it.
+     * @param id the node id
+     * @param tasks the sequence of actions to execute on a {@link LocalNode}
+     * @param labels the labels to assign to each action (w.r.t. to the order of tasks)
+     * @param delays the amount of time in milliseconds before scheduling each task (w.r.t. to the order of tasks)
+     * @param periods the amount of time in milliseconds among each repetition of the tasks execution
+     *                (w.r.t. to the order of tasks)
+     */
+    public StabilizerNode(int id, Node n, Consumer<LocalNode>[] tasks, String[] labels,
+                          long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+        super(id, n);
+        initPeriodicActions(tasks, labels, delays, periods);
+    }
+
+    public StabilizerNode(int id, Node n, String host, int port,
+                          Consumer<LocalNode>[] tasks, String[] labels,
+                          long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+        super(id, host, port, n);
+        initPeriodicActions(tasks, labels, delays, periods);
+    }
+
+    /**
+     * Initialises the periodic actions for stabilization
+     * @param tasks the sequence of actions to execute on a {@link LocalNode}
+     * @param labels the labels to assign to each action (w.r.t. to the order of tasks)
+     * @param delays the amount of time in milliseconds before scheduling each task (w.r.t. to the order of tasks)
+     * @param periods the amount of time in milliseconds among each repetition of the tasks execution
+     */
+    private void initPeriodicActions(Consumer<LocalNode>[] tasks, String[] labels,
+                                     long[] delays, long[] periods) {
+        validate(tasks, labels, delays, periods);
+
         this.running = false;
 
         for (int i = 0; i < tasks.length; i++)
             periodicActions.add(new PeriodicAction(this, tasks[i], labels[i],
                     delays[i], periods[i]));
+    }
+
+    /**
+     * Verifies that all the parameters have same length
+     * @param tasks the sequence of actions to execute on a {@link LocalNode}
+     * @param labels the labels to assign to each action (w.r.t. to the order of tasks)
+     * @param delays the amount of time in milliseconds before scheduling each task (w.r.t. to the order of tasks)
+     * @param periods the amount of time in milliseconds among each repetition of the tasks execution
+     */
+    private void validate(Consumer<LocalNode>[] tasks, String[] labels,
+                          long[] delays, long[] periods) {
+        if (tasks.length != delays.length ||
+                tasks.length != periods.length ||
+                tasks.length != labels.length)
+            throw new IllegalArgumentException("StabilizerNode(): three arrays' lengths must be the same");
     }
 
     /**
@@ -85,7 +139,6 @@ public class StabilizerNode extends LocalNode {
             this.timerTask = new TimerTask() {
                 @Override
                 public void run() {
-                    System.out.println("Calling periodic routine in " + target.getId());
                     runnable.accept(target);
                 }
             };

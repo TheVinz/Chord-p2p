@@ -1,7 +1,10 @@
 package utils;
 
+import network.exeptions.NetworkFailureException;
 import node.LocalNode;
+import node.Node;
 import node.StabilizerNode;
+import node.exceptions.NodeNotFoundException;
 
 import java.util.function.Consumer;
 
@@ -18,11 +21,18 @@ public abstract class Util {
             return id > start || id < end;
         }
         else if(start < end) return id > start && id < end;
-        else return id != start; //
+        else return id!=start; //
     }
 
     public static StabilizerNode createDefaultStabilizerNode(int id, long[] delays, long[] periods) {
         return new StabilizerNode(id, DEFAULT_ROUTINES, defaultLabels, delays, periods);
     }
 
+    public static StabilizerNode createDefaultStabilizerNode(int id, Node toJoin, long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+        return new StabilizerNode(id, toJoin, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+    }
+
+    public static StabilizerNode createDefaultStabilizerNode(int id, Node toJoin, String ip, int port, long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+        return new StabilizerNode(id, toJoin, ip, port, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+    }
 }
