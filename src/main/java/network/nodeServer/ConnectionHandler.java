@@ -31,7 +31,6 @@ class ConnectionHandler implements Closeable {
         } catch (EOFException e){
             close();
         } catch (IOException e) {
-            e.printStackTrace();
             close();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();

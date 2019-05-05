@@ -1,7 +1,6 @@
 package node;
 
 import network.exeptions.NetworkFailureException;
-import node.exceptions.NodeNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,14 +50,14 @@ public class StabilizerNode extends LocalNode {
      *                (w.r.t. to the order of tasks)
      */
     public StabilizerNode(int id, Node n, Consumer<LocalNode>[] tasks, String[] labels,
-                          long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+                          long[] delays, long[] periods) throws NetworkFailureException {
         super(id, n);
         initPeriodicActions(tasks, labels, delays, periods);
     }
 
     public StabilizerNode(int id, Node n, String host, int port,
                           Consumer<LocalNode>[] tasks, String[] labels,
-                          long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+                          long[] delays, long[] periods) throws NetworkFailureException {
         super(id, host, port, n);
         initPeriodicActions(tasks, labels, delays, periods);
     }

@@ -1,7 +1,6 @@
 package node;
 
 import network.exeptions.NetworkFailureException;
-import node.exceptions.NodeNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +29,13 @@ public class TestNode extends LocalNode {
         return n;
     }
 
-    public void join(Node n) throws NodeNotFoundException, NetworkFailureException {
+    public void join(Node n) throws  NetworkFailureException {
         Objects.requireNonNull(n);
         initFingerTable(n);
         updateOthers();
     }
 
-    public void initFingerTable(Node n) throws NodeNotFoundException, NetworkFailureException {
+    public void initFingerTable(Node n) throws NetworkFailureException {
         this.setFingerTableEntryNode(0, n.findSuccessor(this.getFingerTableEntry(0).getStart()));
         setPredecessor(((LocalNode) getSuccessor()).getPredecessor());
         ((LocalNode) getSuccessor()).setPredecessor(this);

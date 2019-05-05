@@ -3,7 +3,6 @@ package resource;
 import network.exeptions.NetworkFailureException;
 import node.LocalNode;
 import node.Node;
-import node.exceptions.NodeNotFoundException;
 
 public class RemoteResource {
 
@@ -21,7 +20,7 @@ public class RemoteResource {
     private Node find() {
         try {
              return localNode.findSuccessor(id);
-        } catch (NodeNotFoundException | NetworkFailureException e) {
+        } catch (NetworkFailureException e) {
             e.printStackTrace();
             return find(); // TODO why loop?
         }

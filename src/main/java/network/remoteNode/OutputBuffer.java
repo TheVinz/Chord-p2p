@@ -26,7 +26,9 @@ class OutputBuffer {
         try {
             oos.writeObject(msg);
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            //TODO close the connection
+            close();
             throw new NetworkFailureException();
         }
         return new Request(requestId);
@@ -36,7 +38,7 @@ class OutputBuffer {
         return closed;
     }
 
-    public void close() throws IOException {
+    public void close() {
         closed=true;
     }
 }

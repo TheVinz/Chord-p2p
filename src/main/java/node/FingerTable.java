@@ -21,6 +21,7 @@ public class FingerTable {
         for(int i=0; i<entries.length; i++)
             entries[i] = new FingerTableEntry(FingerTableEntry.initialStart(node, i, Util.M),
                     initNode);
+        System.out.println("Finger table in node "+node.getId()+" initialized with "+initNode.getId());
     }
 
     Node getNode(int index) {

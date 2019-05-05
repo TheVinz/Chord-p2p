@@ -1,7 +1,6 @@
 package node;
 
 import network.exeptions.NetworkFailureException;
-import node.exceptions.NodeNotFoundException;
 
 import java.util.List;
 
@@ -13,7 +12,7 @@ public class FailureTester extends SimpleTester {
         FailureTester failureTester = new FailureTester();
         try {
             failureTester.test();
-        } catch (NetworkFailureException | NodeNotFoundException e) {
+        } catch (NetworkFailureException e) {
             e.printStackTrace();
         }
     }
@@ -42,7 +41,7 @@ public class FailureTester extends SimpleTester {
     }
 
     @Override
-    public void test() throws NodeNotFoundException, NetworkFailureException {
+    public void test() throws NetworkFailureException {
         super.test();
     }
 
@@ -52,7 +51,7 @@ public class FailureTester extends SimpleTester {
     }
 
     @Override
-    public StabilizerNode createStabilizerNode(int id, Node node, long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+    public StabilizerNode createStabilizerNode(int id, Node node, long[] delays, long[] periods) throws NetworkFailureException {
         return createDefaultStabilizerNode(id, node, delays, periods, true);
     }
 

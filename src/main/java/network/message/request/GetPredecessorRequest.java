@@ -15,7 +15,11 @@ public class GetPredecessorRequest extends RequestMessage{
         } catch (NetworkFailureException e) {
             e.printStackTrace();
         }
-        NodeReply reply = new NodeReply(n);
+        NodeReply reply;
+        if(n == null)
+            reply = new NodeReply();
+        else
+            reply = new NodeReply(n);
         reply.setRequestId(getRequestId());
         return reply;
     }

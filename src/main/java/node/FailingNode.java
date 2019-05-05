@@ -1,7 +1,6 @@
 package node;
 
 import network.exeptions.NetworkFailureException;
-import node.exceptions.NodeNotFoundException;
 import utils.Util;
 
 import java.util.function.Consumer;
@@ -28,7 +27,7 @@ public class FailingNode extends StabilizerNode {
         hasFailed = false;
     }
 
-    public FailingNode(int id, Node node, Consumer<LocalNode>[] tasks, String[] labels, long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+    public FailingNode(int id, Node node, Consumer<LocalNode>[] tasks, String[] labels, long[] delays, long[] periods) throws  NetworkFailureException {
         super(id, node, tasks, labels, delays, periods);
         hasFailed = false;
     }
@@ -49,7 +48,7 @@ public class FailingNode extends StabilizerNode {
      */
 
     @Override
-    public Node findSuccessor(int id) throws NodeNotFoundException, NetworkFailureException {
+    public Node findSuccessor(int id) throws NetworkFailureException {
         if(!hasFailed)
             return super.findSuccessor(id);
         throw new NetworkFailureException();
@@ -82,7 +81,9 @@ public class FailingNode extends StabilizerNode {
      * @return false always
      */
     @Override
-    public boolean hasFailed() {
+    public boolean hasFailed() throws NetworkFailureException {
+        if(hasFailed)
+            throw new NetworkFailureException();
         return hasFailed;
     }
 }

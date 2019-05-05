@@ -1,7 +1,6 @@
 package node;
 
 import network.exeptions.NetworkFailureException;
-import node.exceptions.NodeNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +24,12 @@ public class SimpleTester {
         SimpleTester tester = new SimpleTester();
         try {
             tester.test();
-        } catch (NodeNotFoundException | NetworkFailureException e) {
+        } catch (NetworkFailureException e) {
             e.printStackTrace();
         }
     }
 
-    public void test() throws NodeNotFoundException, NetworkFailureException {
+    public void test() throws NetworkFailureException {
         setup();
         checkSuccessor(stabilizerSource, testSource);
         checkFingerTable(stabilizerNodes, testNodes);
@@ -45,7 +44,7 @@ public class SimpleTester {
 
     }
 
-    private void checkTesterCorrectness() throws NodeNotFoundException, NetworkFailureException {
+    private void checkTesterCorrectness() throws  NetworkFailureException {
         Node temp = testNodes.get(0);
         int begin = temp.getId();
         int cont = 1;
@@ -72,7 +71,7 @@ public class SimpleTester {
         return createDefaultStabilizerNode(id, delays, periods, false);
     }
 
-    public StabilizerNode createStabilizerNode(int id, Node node, long[] delays, long[] periods) throws NodeNotFoundException, NetworkFailureException {
+    public StabilizerNode createStabilizerNode(int id, Node node, long[] delays, long[] periods) throws  NetworkFailureException {
         return createDefaultStabilizerNode(id, node, delays, periods, false);
     }
 
@@ -91,8 +90,8 @@ public class SimpleTester {
         testSource = new TestNode(0);
         testNodes.add(testSource);
 
-        Random rnd = new Random(9);
-        for(int i=0; i<100; i++){
+        Random rnd = new Random(10);
+        for(int i=0; i<20; i++){
             try {
                 sleep(1000);
             } catch (InterruptedException e) {
@@ -113,7 +112,7 @@ public class SimpleTester {
                         testNode.join(testSource);
                         correctJoin = true;
 
-                    } catch (NodeNotFoundException | NetworkFailureException e) {
+                    } catch (NetworkFailureException e) {
                         e.printStackTrace();
                         System.err.println("Sorry, join of node "+id+" failed.\nTry again...\n");
                         try {
@@ -137,7 +136,7 @@ public class SimpleTester {
         }
         try {
             checkTesterCorrectness();
-        } catch (NodeNotFoundException | NetworkFailureException e) {
+        } catch (NetworkFailureException e) {
             e.printStackTrace();
         }
     }
@@ -159,7 +158,7 @@ public class SimpleTester {
         System.out.println("checkFingerTable is finished!");
     }
 
-    public void checkSuccessor(Node stabilizerSource, Node testSource) throws NodeNotFoundException, NetworkFailureException {
+    public void checkSuccessor(Node stabilizerSource, Node testSource) throws  NetworkFailureException {
         Node stabilizerNode = stabilizerSource.getSuccessor();
         Node testNode = testSource.getSuccessor();
         int cont = 0;

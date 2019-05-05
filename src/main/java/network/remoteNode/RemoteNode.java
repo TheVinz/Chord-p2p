@@ -4,13 +4,8 @@ import network.exeptions.NetworkFailureException;
 import network.message.reply.NodeReply;
 import network.message.reply.ReplyMessage;
 import network.message.reply.ResourceReply;
-import network.message.request.RequestMessage;
-import network.message.request.FetchMessage;
-import network.message.request.FindSuccessorRequest;
-import network.message.request.GetPredecessorRequest;
-import network.message.request.GetSuccessorRequest;
-import network.message.request.NotifyPredecessorRequest;
-import network.message.request.PublishRequest;
+import network.message.reply.SuccessorListReply;
+import network.message.request.*;
 import node.Node;
 import resource.ChordResource;
 
@@ -18,6 +13,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -81,7 +77,10 @@ public class RemoteNode implements Node {
             RequestMessage msg = new GetPredecessorRequest();
             Request request = outputBuffer.sendRequest(msg);
             NodeReply reply = (NodeReply) queue.submitRequest(request);
-            return new RemoteNode(reply.getId(), reply.getIp(), reply.getPort());
+            if(reply.isNotFound())
+                return null;
+            else
+                return new RemoteNode(reply.getId(), reply.getIp(), reply.getPort());
         } catch (NetworkFailureException e){
             e.setMessage("Failed to contact Node " + id + " on getPredecessor");
             throw e;
@@ -107,9 +106,18 @@ public class RemoteNode implements Node {
     }
 
     @Override
-    public List<Node> getSuccessorsList() {
-        // TODO ping the remote node and return true if it doesn't answer
-        return null;
+    public List<Node> getSuccessorsList() throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        RequestMessage msg = new SuccessorListRequest();
+        Request request = outputBuffer.sendRequest(msg);
+        SuccessorListReply reply = (SuccessorListReply) queue.submitRequest(request);
+        List<Node> successorsList = new ArrayList<>();
+        for(int i=0; i<reply.getIds().size(); i++){
+            Node remoteNode = new RemoteNode(reply.getIds().get(i).intValue(), reply.getIps().get(i), reply.getPorts().get(i));
+            successorsList.add(remoteNode);
+        }
+        return successorsList;
     }
 
 
@@ -121,9 +129,17 @@ public class RemoteNode implements Node {
     }
 
     @Override
-    public boolean hasFailed() {
+    public boolean hasFailed() throws NetworkFailureException{
         // TODO ping the remote node and return true if it doesn't answer
-        return false;
+        if(closed)
+            setUpConnection();
+        RequestMessage msg = new PingRequest();
+        Request request = outputBuffer.sendRequest(msg);
+        queue.submitRequest(request);
+        if(request.isFailed())
+            throw new NetworkFailureException();
+        else
+            return false;
     }
 
     public ChordResource fetch(String name) throws NetworkFailureException {

@@ -9,7 +9,7 @@ public class AnchorNode {
         String ip = "localhost";
         int port = 8888;
 
-        StabilizerNode anchor = Util.createDefaultStabilizerNode(0, new long[]{500, 800}, new long[]{250, 250}, false);
+        StabilizerNode anchor = Util.createDefaultStabilizerNode(0, new long[]{500, 800, 0, 100}, new long[]{250, 250, 20, 20}, false);
         anchor.start();
         try {
             NodeServer server = new NodeServer(anchor, ip, port);

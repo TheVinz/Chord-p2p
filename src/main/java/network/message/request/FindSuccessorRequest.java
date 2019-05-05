@@ -4,7 +4,6 @@ import network.exeptions.NetworkFailureException;
 import network.message.reply.NodeReply;
 import node.LocalNode;
 import node.Node;
-import node.exceptions.NodeNotFoundException;
 
 public class FindSuccessorRequest extends RequestMessage {
 
@@ -25,7 +24,7 @@ public class FindSuccessorRequest extends RequestMessage {
             NodeReply reply = new NodeReply(n);
             reply.setRequestId(getRequestId());
             return reply;
-        } catch (NodeNotFoundException | NetworkFailureException e) {
+        } catch (NetworkFailureException e) {
             e.printStackTrace();
             return null;
         }

@@ -3,7 +3,6 @@ import network.nodeServer.NodeServer;
 import network.remoteNode.RemoteNode;
 import node.Node;
 import node.StabilizerNode;
-import node.exceptions.NodeNotFoundException;
 import resource.ChordResource;
 import resource.RemoteResource;
 import utils.Util;
@@ -34,7 +33,7 @@ public class ChordNetwork {
         }
 
         try {
-            node = Util.createDefaultStabilizerNode(id, anchor, ip, port, new long[]{500, 800}, new long[]{250, 250});
+            node = Util.createDefaultStabilizerNode(id, anchor, ip, port, new long[]{500, 800, 0, 100}, new long[]{250, 250, 20, 20});
             node.start();
             try {
                 server = new NodeServer(node, ip, port);
@@ -42,7 +41,7 @@ public class ChordNetwork {
                 e.printStackTrace();
             }
             anchor.close();
-        } catch (NetworkFailureException | NodeNotFoundException e) {
+        } catch (NetworkFailureException e) {
             e.printStackTrace();
         }
     }
@@ -53,7 +52,7 @@ public class ChordNetwork {
             Node n = node.findSuccessor(id);
             n.publish(new ChordResource(title, content));
             n.close();
-        } catch (NoSuchAlgorithmException | NetworkFailureException | NodeNotFoundException e) {
+        } catch (NoSuchAlgorithmException | NetworkFailureException e) {
             e.printStackTrace();
         }
     }
