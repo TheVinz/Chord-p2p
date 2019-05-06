@@ -1,6 +1,6 @@
 package node;
 
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import utils.Util;

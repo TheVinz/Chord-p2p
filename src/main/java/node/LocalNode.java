@@ -1,6 +1,6 @@
 package node;
 
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import resource.ChordResource;
 
 import java.io.File;

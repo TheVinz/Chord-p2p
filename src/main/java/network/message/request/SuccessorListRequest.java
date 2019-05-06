@@ -1,6 +1,6 @@
 package network.message.request;
 
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import network.message.reply.SuccessorListReply;
 import node.LocalNode;
 

@@ -1,6 +1,6 @@
 package network.remoteNode;
 
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import network.message.reply.ReplyMessage;
 
 import java.util.Calendar;

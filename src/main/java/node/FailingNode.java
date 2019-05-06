@@ -1,6 +1,6 @@
 package node;
 
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import utils.Util;
 
 import java.util.function.Consumer;

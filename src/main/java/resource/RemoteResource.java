@@ -1,6 +1,6 @@
 package resource;
 
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import node.LocalNode;
 import node.Node;
 

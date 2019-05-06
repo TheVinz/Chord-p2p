@@ -1,6 +1,6 @@
 package utils;
 
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import node.LocalNode;
 import node.Node;
 import node.StabilizerNode;

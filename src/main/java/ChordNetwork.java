@@ -1,4 +1,4 @@
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import network.nodeServer.NodeServer;
 import network.remoteNode.RemoteNode;
 import node.Node;

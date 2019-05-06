@@ -1,9 +1,8 @@
 package network.remoteNode;
 
-import network.exeptions.NetworkFailureException;
+import network.exceptions.NetworkFailureException;
 import network.message.request.RequestMessage;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
