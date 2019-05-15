@@ -1,6 +1,8 @@
 import resource.RemoteResource;
+import utils.LogFormatter;
 
 import java.util.Scanner;
+import java.util.logging.Level;
 
 public class Main {
     public static void main(String[] args) {
@@ -8,10 +10,12 @@ public class Main {
         String ip = "localhost";
         int port = sc.nextInt();
 
+        LogFormatter.logSetup(Level.FINE);
+
         ChordNetwork network = new ChordNetwork();
         network.join(ip, port);
 
-        while(true){
+        while(!network.isClosed()){
             String input = sc.next(), name, content;
             switch (input){
                 case "publish":
@@ -26,5 +30,7 @@ public class Main {
                     break;
             }
         }
+
+        sc.close();
     }
 }

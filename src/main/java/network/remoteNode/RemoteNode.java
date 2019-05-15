@@ -28,6 +28,7 @@ public class RemoteNode implements Node {
     private final int port;
     private Socket socket;
     private OutputBuffer outputBuffer;
+    private InputBuffer inputBuffer;
     private PendingRequestQueue queue;
     private boolean closed=true;
 
@@ -45,11 +46,12 @@ public class RemoteNode implements Node {
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
             outputBuffer=new OutputBuffer(oos);
-            new InputBuffer(ois, queue, this.id);
-            closed=false;
+            inputBuffer = new InputBuffer(ois, queue, this.id);
+            closed = false;
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new NetworkFailureException();
+            // TODO: should manage close?
+            close();
+            throw new NetworkFailureException(e);
         }
     }
 
@@ -114,7 +116,7 @@ public class RemoteNode implements Node {
         SuccessorListReply reply = (SuccessorListReply) queue.submitRequest(request);
         List<Node> successorsList = new ArrayList<>();
         for(int i=0; i<reply.getIds().size(); i++){
-            Node remoteNode = new RemoteNode(reply.getIds().get(i).intValue(), reply.getIps().get(i), reply.getPorts().get(i));
+            Node remoteNode = new RemoteNode(reply.getIds().get(i), reply.getIps().get(i), reply.getPorts().get(i));
             successorsList.add(remoteNode);
         }
         return successorsList;
@@ -130,14 +132,13 @@ public class RemoteNode implements Node {
 
     @Override
     public boolean hasFailed() throws NetworkFailureException{
-        // TODO ping the remote node and return true if it doesn't answer
         if(closed)
             setUpConnection();
         RequestMessage msg = new PingRequest();
         Request request = outputBuffer.sendRequest(msg);
         queue.submitRequest(request);
         if(request.isFailed())
-            throw new NetworkFailureException();
+            throw new NetworkFailureException(); // TODO: I would just return true, why thr?
         else
             return false;
     }
@@ -177,15 +178,18 @@ public class RemoteNode implements Node {
      */
     @Override
     public void close() {
-        try {
+        try { // TODO the opposite try -- if
             if (!closed) {
+                inputBuffer.close();
+                outputBuffer.close();
                 socket.close();
                 queue.close();
-                closed = true;
             }
         } catch (IOException e){
-            // TODO understand logging or re-throwing
+            // TODO understand logging or re-throwing. What happen to the remaining unclosed?
             e.printStackTrace();
+        } finally {
+            closed = true;
         }
     }
 

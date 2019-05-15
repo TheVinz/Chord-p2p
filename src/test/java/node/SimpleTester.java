@@ -120,7 +120,6 @@ public class SimpleTester {
                         } catch (InterruptedException e1) {
                             e1.printStackTrace();
                         }
-                        // TODO Try again after x seconds.
                     }
                 }
                 System.out.println(id + " created");
@@ -143,7 +142,7 @@ public class SimpleTester {
 
     private void tearDown() {
         for (Node node : stabilizerNodes)
-            ((StabilizerNode)node).stop();
+            ((StabilizerNode)node).close();
     }
 
     public void checkFingerTable(List<Node> stabilizerNodes, List<Node> testNodes) {

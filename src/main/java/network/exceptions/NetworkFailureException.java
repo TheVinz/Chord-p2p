@@ -11,6 +11,10 @@ public class NetworkFailureException extends Throwable {
         this.message=message;
     }
 
+    public NetworkFailureException(Exception e) {
+        super(e);
+    }
+
     public void setMessage(String message) {
         this.message = message;
     }

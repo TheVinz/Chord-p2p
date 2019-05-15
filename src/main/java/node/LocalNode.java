@@ -26,7 +26,7 @@ public class LocalNode implements Node{
     public static final int DEFAULT_PORT = 8888;
     private FingerTable fingerTable;
     private Node predecessor = this;// TODO: in the Paper is null
-    private Object predecessor_lock = new Object();
+    private final Object predecessor_lock = new Object();
     private int next = 0;
     private int id;
     private final String host;
@@ -123,8 +123,16 @@ public class LocalNode implements Node{
      */
     @Override
     public Node getSuccessor() throws NetworkFailureException {
-        Node n = fingerTable.getSuccessor();
-        return n.wrap();
+        return _getSuccessor().wrap();
+    }
+
+    /**
+     * Return the successor from the finger table.
+     * For internal use, since the public version of this method would wrap the resulting node
+     * @return the predecessor
+     */
+    private Node _getSuccessor() {
+        return fingerTable.getSuccessor();
     }
 
     void setSuccessor(Node n) {
@@ -151,14 +159,21 @@ public class LocalNode implements Node{
      * For internal use, since the public version of this method would wrap the resulting node
      * @return the predecessor
      */
-    private Node _getPredecessor() {
+    public Node _getPredecessor() {
         synchronized (predecessor_lock) {
             return predecessor;
         }
     }
 
     void setPredecessor(Node predecessor) {
+        // Apply similar reasoning as FingerTable#setNode
         synchronized (predecessor_lock) {
+            Node tmp = this.predecessor;
+            if (tmp != null) {
+                if (predecessor != null && tmp.getId() == predecessor.getId())
+                    return; // Node already inside as predecessor
+                tmp.close();
+            }
             this.predecessor = predecessor;
             if (predecessor != null)
                 System.out.println("New predecessor " + predecessor.getId() + " in node " + this.getId());
@@ -223,10 +238,10 @@ public class LocalNode implements Node{
     // TODO move externally stabilize, fixFingers and checkPredecessor
     public void stabilize(){
         try {
-            Node x = fingerTable.getSuccessor().getPredecessor();
+            Node x = _getSuccessor().getPredecessor();
             if(x!= null && isInsideInterval(x.getId(), getId(), fingerTable.getSuccessor().getId()))
                 setSuccessor(x);
-            fingerTable.getSuccessor().notifyPredecessor(this);
+            _getSuccessor().notifyPredecessor(this);
         } catch (NetworkFailureException e) {
             System.err.println("Failed to stabilize in node "+this.getId());
         }
@@ -265,30 +280,20 @@ public class LocalNode implements Node{
     }
 
     public void checkSuccessor() {
-
-
         try {
-            getSuccessor().hasFailed();
+            _getSuccessor().hasFailed();
         } catch(NetworkFailureException e){
-            Node before = null;
-            try {
-                before = this.getSuccessor();
-            } catch (NetworkFailureException e1) {
+            Node before = _getSuccessor();
+            System.err.println("Successor "+this._getSuccessor().getId()+ " failed in node "+this.getId());
+            if (successorsList.size() > 0) {
+                this.setSuccessor(successorsList.get(0));
+                successorsList.remove(0);
+            } else{
+                this.setSuccessor(this);
+                System.out.println("This is the only node in the network now!");
             }
-            try {
-                System.err.println("Successor "+this.getSuccessor().getId()+ " failed in node "+this.getId());
-                if (successorsList.size() > 0) {
-                    this.setSuccessor(successorsList.get(0));
-                    successorsList.remove(0);
-                } else{
-                    this.setSuccessor(this);
-                    System.out.println("This is the only node in the network now!");
-                }
 
-                            System.out.println("New successor in node "+this.getId()+": "+before.getId()+" -> "+this.getSuccessor().getId());
-                        } catch (NetworkFailureException e1) {
-                            e1.printStackTrace(); //never thrown but needed for this.getSuccessor() in the println
-                        }
+            System.out.println("New successor in node "+this.getId()+": "+before.getId()+" -> "+this._getSuccessor().getId());
         }
         updateSuccessorsList();
     }
@@ -296,14 +301,14 @@ public class LocalNode implements Node{
     private void updateSuccessorsList(){
         List<Node> successorSuccessorsList = null;
         try {
-            successorSuccessorsList = this.getSuccessor().getSuccessorsList();
+            successorSuccessorsList = this._getSuccessor().getSuccessorsList();
         } catch (NetworkFailureException e) {
             System.err.println("Failed to retrieve successorList in node "+this.getId());
         }
         List<Node> temp = (List) ((ArrayList) successorSuccessorsList).clone();
         try {
-            if(this.getSuccessor().getSuccessor().getId() != this.getId() && this.getSuccessor().getSuccessor().getId() != this.getSuccessor().getId())
-                temp.add(0, this.getSuccessor().getSuccessor());
+            if(this._getSuccessor().getSuccessor().getId() != this.getId() && this._getSuccessor().getSuccessor().getId() != this._getSuccessor().getId())
+                temp.add(0, this._getSuccessor().getSuccessor());
             else if(temp.size() > R){
                 temp.remove(temp.size()-1);
             }
@@ -314,7 +319,7 @@ public class LocalNode implements Node{
     }
 
     @Override
-    public List<Node> getSuccessorsList() throws NetworkFailureException{
+    public List<Node> getSuccessorsList() {
         return successorsList;
     }
 

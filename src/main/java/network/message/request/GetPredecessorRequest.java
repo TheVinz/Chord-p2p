@@ -1,6 +1,5 @@
 package network.message.request;
 
-import network.exceptions.NetworkFailureException;
 import network.message.reply.NodeReply;
 import node.LocalNode;
 import node.Node;
@@ -9,12 +8,7 @@ public class GetPredecessorRequest extends RequestMessage{
 
     @Override
     public NodeReply handleRequest(LocalNode node) {
-        Node n = null;
-        try {
-            n = node.getPredecessor();
-        } catch (NetworkFailureException e) {
-            e.printStackTrace();
-        }
+        Node n = node._getPredecessor();
         NodeReply reply;
         if(n == null)
             reply = new NodeReply();

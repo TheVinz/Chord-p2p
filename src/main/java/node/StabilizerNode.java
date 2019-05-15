@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 public class StabilizerNode extends LocalNode {
 
     private final List<PeriodicAction> periodicActions = new ArrayList<>();
+    //private final ExecutorService pool = Executors.newScheduledThreadPool();
     private boolean running;
 
     /**
@@ -111,7 +112,8 @@ public class StabilizerNode extends LocalNode {
     /**
      * If the server is running, stops every periodic action scheduled.
      */
-    public void stop() {
+    @Override
+    public void close() {
         if(running) {
             for (PeriodicAction pa : periodicActions)
                 pa.stop();

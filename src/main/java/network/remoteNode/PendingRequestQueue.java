@@ -6,17 +6,22 @@ import network.message.reply.ReplyMessage;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class PendingRequestQueue {
 
+    private static final Logger LOGGER = Logger.getLogger(PendingRequestQueue.class.getSimpleName());
+    private final ExecutorService pool;
     private ConcurrentLinkedDeque<Request> pendingRequests = new ConcurrentLinkedDeque<>();
     private boolean closed = false;
     private static final long TIMEOUT=1000L;
 
     PendingRequestQueue(){
-        Thread expiredRequestCollector=new Thread(this::expiredRequestCollector);
-        expiredRequestCollector.setName("Expired request Collector");
-        expiredRequestCollector.start();
+        pool = Executors.newSingleThreadExecutor();
+        //pool.execute(this::expiredRequestCollector);
     }
 
     void handleReplyMessage(ReplyMessage msg){
@@ -52,12 +57,14 @@ class PendingRequestQueue {
     }
 
     void close(){
-        closed=true;
+        closed = true;
+        pool.shutdown();
         for(Request r : pendingRequests)
             r.delete();
     }
 
     private void expiredRequestCollector(){
+        Thread.currentThread().setName("Expired request Collector");
         long currentTime;
         while(!closed){
             currentTime=Calendar.getInstance().getTimeInMillis();
@@ -68,9 +75,11 @@ class PendingRequestQueue {
             try {
                 Thread.sleep(TIMEOUT);
             } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, "Collector of expired requests interrupted.");
                 return;
             }
         }
+        LOGGER.log(Level.WARNING, "Collector of expired requests finished.");
     }
 
 
