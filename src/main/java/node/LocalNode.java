@@ -136,9 +136,9 @@ public class LocalNode implements Node{
     }
 
     void setSuccessor(Node n) {
-        if(n.getId() != fingerTable.getSuccessor().getId()) {
+        //if(n.getId() != fingerTable.getSuccessor().getId()) {
             fingerTable.setNode(0, n);
-        }
+        //}
     }
 
     /**
@@ -172,7 +172,8 @@ public class LocalNode implements Node{
             if (tmp != null) {
                 if (predecessor != null && tmp.getId() == predecessor.getId())
                     return; // Node already inside as predecessor
-                tmp.close();
+                if(tmp.getId() != this.getId())
+                    tmp.close();
             }
             this.predecessor = predecessor;
             if (predecessor != null)
@@ -186,7 +187,7 @@ public class LocalNode implements Node{
             if (_getPredecessor() != null && _getPredecessor().getId() == n.getId())
                 return;
             if (_getPredecessor() == null || isInsideInterval(n.getId(), _getPredecessor().getId(), this.getId())) {
-                if (_getPredecessor() != null)
+                if (_getPredecessor() != null && _getPredecessor().getId() != this.getId())
                     _getPredecessor().close();
                 setPredecessor(n);
             }
@@ -238,7 +239,9 @@ public class LocalNode implements Node{
     // TODO move externally stabilize, fixFingers and checkPredecessor
     public void stabilize(){
         try {
+            //System.out.println("prciao");
             Node x = _getSuccessor().getPredecessor();
+            //System.out.println("provaaaa "+x.getId());
             if(x!= null && isInsideInterval(x.getId(), getId(), fingerTable.getSuccessor().getId()))
                 setSuccessor(x);
             _getSuccessor().notifyPredecessor(this);
@@ -255,8 +258,8 @@ public class LocalNode implements Node{
             Node n = findSuccessor(FingerTableEntry.initialStart(this, next, M));
             Node before = fingerTable.getNode(next);
             fingerTable.setNode(next, n);
-            if(before.getId() != n.getId())
-                System.out.println("New entry "+next+" in node "+this.getId()+": "+before.getId()+" -> "+n.getId());
+            //if(before.getId() != n.getId())
+             //   System.out.println("New entry "+next+" in node "+this.getId()+": "+before.getId()+" -> "+n.getId());
             /*
              *  Even if fixFingers cannot reach the node, will try it later by itself
              *  when `next` will have again the same value

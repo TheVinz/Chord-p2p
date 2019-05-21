@@ -12,7 +12,7 @@ public class AnchorNode {
 
         LogFormatter.logSetup(Level.FINER);
 
-        StabilizerNode anchor = Util.createDefaultStabilizerNode(0, new long[]{500, 800, 0, 100}, new long[]{250, 250, 20, 20}, false);
+        StabilizerNode anchor = Util.createDefaultStabilizerNode(0, new long[]{500, 800, 1000, 1000}, new long[]{250, 250, 250, 250}, false);
         anchor.start();
         try(NodeServer server = new NodeServer(anchor, port)) {
             server.loop();

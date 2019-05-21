@@ -30,14 +30,14 @@ class ConnectionHandler implements Closeable {
         this.localNode = localNode;
         oos = new ObjectOutputStream(socket.getOutputStream());
         ois = new ObjectInputStream(socket.getInputStream());
-        pool = Executors.newFixedThreadPool(20);
+        pool = Executors.newFixedThreadPool(1000);
     }
 
     void handle(){
         try {
             while (!closed) {
                 RequestMessage in = (RequestMessage) ois.readObject();
-                LOGGER.log(Level.FINER, "New message in: {0}", in.getClass().getSimpleName());
+                //LOGGER.log(Level.FINER, "New message in: {0}", in.getClass().getSimpleName());
 
                 pool.submit(() -> handleRequest(in));
             }

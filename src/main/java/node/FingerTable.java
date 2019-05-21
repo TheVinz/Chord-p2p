@@ -9,6 +9,7 @@ public class FingerTable {
 
     // TODO use a synchronized structure because an update could happen during a request?
     private FingerTableEntry[] entries = new FingerTableEntry[Util.M];
+    private Node node;
 
     /**
      * Constructs populating the keys ({@link FingerTableEntry#setStart(int)}
@@ -17,6 +18,7 @@ public class FingerTable {
      * @param initNode the node to initialise each fingers.
      */
     FingerTable(Node node, Node initNode) {
+        this.node = node;
         Objects.requireNonNull(node);
         for(int i=0; i<entries.length; i++)
             entries[i] = new FingerTableEntry(FingerTableEntry.initialStart(node, i, Util.M),
@@ -34,6 +36,8 @@ public class FingerTable {
 
         if(old.getId() == n.getId())
             return;
+
+        System.out.println("New entry "+index+" in node "+node.getId()+": "+old.getId()+" -> "+n.getId());
 
         // Search if n alredy present
         for(int i=0; i<entries.length && newNode==null; i++){
@@ -55,7 +59,8 @@ public class FingerTable {
             if(entry.getNode().getId() == old.getId())
                 // found it in other position, don't close it
                 return;
-        old.close(); // not other instances of the old one
+        if(old.getId() != node.getId())
+            old.close(); // not other instances of the old one
     }
 
     Node getSuccessor() {

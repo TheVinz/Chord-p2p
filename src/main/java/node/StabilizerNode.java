@@ -114,6 +114,7 @@ public class StabilizerNode extends LocalNode {
      */
     @Override
     public void close() {
+        System.out.println("This node has been closed!");
         if(running) {
             for (PeriodicAction pa : periodicActions)
                 pa.stop();

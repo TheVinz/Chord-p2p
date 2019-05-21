@@ -38,7 +38,7 @@ public class ChordNetwork {
 
         try {
             closed = false;
-            node = Util.createDefaultStabilizerNode(id, anchor, ip, port, new long[]{500, 800, 0, 100}, new long[]{250, 250, 200, 200});
+            node = Util.createDefaultStabilizerNode(id, anchor, ip, port, new long[]{500, 800, 1000, 1000}, new long[]{250, 250, 250, 250});
             node.start();
             server = new NodeServer(node, port);
             serverThread = new Thread(server::loop, "server loop");
