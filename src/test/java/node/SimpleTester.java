@@ -91,7 +91,7 @@ public class SimpleTester {
         testNodes.add(testSource);
 
         Random rnd = new Random(10);
-        for(int i=0; i<20; i++){
+        for(int i=0; i<100; i++){
             try {
                 sleep(1000);
             } catch (InterruptedException e) {
@@ -129,7 +129,7 @@ public class SimpleTester {
             }
         }
         try {
-            sleep(10000);
+            sleep(15000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

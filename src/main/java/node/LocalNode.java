@@ -1,6 +1,7 @@
 package node;
 
 import network.exceptions.NetworkFailureException;
+import network.remoteNode.RemoteNode;
 import resource.ChordResource;
 
 import java.io.File;
@@ -172,7 +173,8 @@ public class LocalNode implements Node{
             if (tmp != null) {
                 if (predecessor != null && tmp.getId() == predecessor.getId())
                     return; // Node already inside as predecessor
-                if(tmp.getId() != this.getId())
+                //if(tmp.getId() != this.getId())
+                if(tmp instanceof RemoteNode)
                     tmp.close();
             }
             this.predecessor = predecessor;
@@ -187,7 +189,7 @@ public class LocalNode implements Node{
             if (_getPredecessor() != null && _getPredecessor().getId() == n.getId())
                 return;
             if (_getPredecessor() == null || isInsideInterval(n.getId(), _getPredecessor().getId(), this.getId())) {
-                if (_getPredecessor() != null && _getPredecessor().getId() != this.getId())
+                if (_getPredecessor() != null && _getPredecessor() instanceof RemoteNode)
                     _getPredecessor().close();
                 setPredecessor(n);
             }

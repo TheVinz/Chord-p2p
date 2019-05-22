@@ -1,5 +1,6 @@
 package node;
 
+import network.remoteNode.RemoteNode;
 import utils.Util;
 
 import java.util.Objects;
@@ -59,7 +60,7 @@ public class FingerTable {
             if(entry.getNode().getId() == old.getId())
                 // found it in other position, don't close it
                 return;
-        if(old.getId() != node.getId())
+        if(old instanceof RemoteNode)
             old.close(); // not other instances of the old one
     }
 
