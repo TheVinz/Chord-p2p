@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -99,12 +100,12 @@ public class LocalNode implements Node{
             if (isInsideInterval(fingerTable.getNode(i).getId(), this.getId(), id))
                 return fingerTable.getNode(i);
         }
+        // TODO search in successor list as well (ref Paper)
         return this;
     }
 
     protected Node findSuccessorFailureHandler(int id) throws NetworkFailureException{
-        int i = 0;
-        for(i=M-1; i>=0; i--) {
+        for(int i=M-1; i>=0; i--) {
             if (isInsideInterval(fingerTable.getNode(i).getId(), this.getId(), id)) {
                 try {
                     Node result = fingerTable.getNode(i).findSuccessor(id);
@@ -287,7 +288,7 @@ public class LocalNode implements Node{
     public void checkSuccessor() {
         try {
             _getSuccessor().hasFailed();
-        } catch(NetworkFailureException e){
+        } catch(NetworkFailureException e) { // Successor has failed
             Node before = _getSuccessor();
             System.err.println("Successor "+this._getSuccessor().getId()+ " failed in node "+this.getId());
             if (successorsList.size() > 0) {
@@ -303,24 +304,27 @@ public class LocalNode implements Node{
         updateSuccessorsList();
     }
 
-    private void updateSuccessorsList(){
-        List<Node> successorSuccessorsList = null;
+    private void updateSuccessorsList() {
+        // TODO shall sync with the check_successor, since might change the successor in between
+        List<Node> successorSuccessorsList = Collections.emptyList();
         try {
             successorSuccessorsList = this._getSuccessor().getSuccessorsList();
         } catch (NetworkFailureException e) {
             System.err.println("Failed to retrieve successorList in node "+this.getId());
         }
-        List<Node> temp = (List) ((ArrayList) successorSuccessorsList).clone();
-        try {
-            if(this._getSuccessor().getSuccessor().getId() != this.getId() && this._getSuccessor().getSuccessor().getId() != this._getSuccessor().getId())
+
+        List<Node> temp = new ArrayList<>(successorSuccessorsList);
+        if(temp.size() > 0) {
+            temp.remove(temp.size()-1);
+
+            try {
                 temp.add(0, this._getSuccessor().getSuccessor());
-            else if(temp.size() > R){
-                temp.remove(temp.size()-1);
+            } catch (NetworkFailureException e) {
+                System.err.println("Failed to update successor list in node "+this.getId());
             }
-        } catch (NetworkFailureException e) {
-            System.err.println("Failed to update successor list in node "+this.getId());
         }
         setSuccessorsList(temp);
+        // TODO maybe clean and cloase previous list?
     }
 
     @Override

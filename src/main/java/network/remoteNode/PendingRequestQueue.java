@@ -21,7 +21,7 @@ class PendingRequestQueue {
 
     PendingRequestQueue(){
         pool = Executors.newSingleThreadExecutor();
-        //pool.execute(this::expiredRequestCollector);
+        pool.execute(this::expiredRequestCollector);
     }
 
     void handleReplyMessage(ReplyMessage msg){
@@ -79,7 +79,6 @@ class PendingRequestQueue {
                 return;
             }
         }
-        LOGGER.log(Level.WARNING, "Collector of expired requests finished.");
     }
 
 
