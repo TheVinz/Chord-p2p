@@ -304,28 +304,26 @@ public class LocalNode implements Node{
         updateSuccessorsList();
     }
 
-    private void updateSuccessorsList() {
-        // TODO shall sync with the check_successor, since might change the successor in between
+    private void updateSuccessorsList(){
         List<Node> successorSuccessorsList = Collections.emptyList();
         try {
             successorSuccessorsList = this._getSuccessor().getSuccessorsList();
         } catch (NetworkFailureException e) {
             System.err.println("Failed to retrieve successorList in node "+this.getId());
         }
-
-        List<Node> temp = new ArrayList<>(successorSuccessorsList);
-        if(temp.size() > 0) {
-            temp.remove(temp.size()-1);
-
-            try {
+        List<Node> temp = (List) ((ArrayList) successorSuccessorsList).clone();
+        try {
+            if(this._getSuccessor().getSuccessor().getId() != this.getId() && this._getSuccessor().getSuccessor().getId() != this._getSuccessor().getId())
                 temp.add(0, this._getSuccessor().getSuccessor());
-            } catch (NetworkFailureException e) {
-                System.err.println("Failed to update successor list in node "+this.getId());
+            else if(temp.size() > R){
+                temp.remove(temp.size()-1);
             }
+        } catch (NetworkFailureException e) {
+            System.err.println("Failed to update successor list in node "+this.getId());
         }
         setSuccessorsList(temp);
-        // TODO maybe clean and cloase previous list?
     }
+
 
     @Override
     public List<Node> getSuccessorsList() {
