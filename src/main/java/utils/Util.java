@@ -35,6 +35,10 @@ public abstract class Util {
             return new FailingNode(id, DEFAULT_ROUTINES, defaultLabels, delays, periods);
     }
 
+    public static StabilizerNode createDefaultStabilizerNode(int id, String host, int port, long[] delays, long[] periods) {
+        return new StabilizerNode(id, host, port, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+    }
+
     public static StabilizerNode createDefaultStabilizerNode(int id, Node node, long[] delays, long[] periods, boolean withFailure) throws NetworkFailureException {
         if(!withFailure)
             return new StabilizerNode(id, node, DEFAULT_ROUTINES, defaultLabels, delays, periods);

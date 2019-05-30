@@ -15,9 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ChordNetwork {
-    private static final String ANCHOR_IP = "localhost"; // TODO set externally
-    private static final int ANCHOR_PORT = 8888;
-    private static final int ANCHOR_ID = 0;
     private static final Logger LOGGER = Logger.getLogger(ChordNetwork.class.getSimpleName());
 
     private StabilizerNode node;
@@ -25,22 +22,19 @@ public class ChordNetwork {
     private Thread serverThread;
     private boolean closed = true;
 
-    public void join(String ip, int port) {
-        Node anchor = new RemoteNode(ANCHOR_ID, ANCHOR_IP, ANCHOR_PORT);
-        int id;
-        try {
-            id = calculateDigest(ip +":"+port);
-            System.out.println("id: " + id);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return;
-        }
+    public void join(String anchorHost, int anchorPort, String nodeHost, int nodePort) {
+        int anchorId, nodeId;
+        anchorId = calculateDigest(anchorHost +":"+ anchorPort);
+        nodeId = calculateDigest(nodeHost +":"+ nodePort);
+        System.out.println("id: " + nodeId);
+
+        Node anchor = new RemoteNode(anchorId, anchorHost, anchorPort);
 
         try {
             closed = false;
-            node = Util.createDefaultStabilizerNode(id, anchor, ip, port, new long[]{500, 800, 1000, 1000}, new long[]{250, 250, 250, 250});
+            node = Util.createDefaultStabilizerNode(nodeId, anchor, nodeHost, nodePort, new long[]{500, 800, 1000, 1000}, new long[]{250, 250, 250, 250});
             node.start();
-            server = new NodeServer(node, port);
+            server = new NodeServer(node, nodePort);
             serverThread = new Thread(server::loop, "server loop");
             serverThread.start();
 
@@ -53,7 +47,7 @@ public class ChordNetwork {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE,
                     "Impossible to bind server in port {0}: {1}.",
-                            new Object[] {port, e.getMessage()});
+                            new Object[] {nodePort, e.getMessage()});
             prepareToExit();
         } finally {
             anchor.close();
@@ -67,27 +61,27 @@ public class ChordNetwork {
             Node n = node.findSuccessor(id).wrap();
             n.publish(new ChordResource(title, content));
             n.close();
-        } catch (NoSuchAlgorithmException | NetworkFailureException e) {
+        } catch (NetworkFailureException e) {
             e.printStackTrace();
         }
     }
 
     public RemoteResource find(String title){
-        try {
-            synchronized (this) {
-                int id = calculateDigest(title);
-                return new RemoteResource(node, title, id);
-            }
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return null;
+        synchronized (this) {
+            int id = calculateDigest(title);
+            return new RemoteResource(node, title, id);
         }
     }
 
 
-    private int calculateDigest(String obj) throws NoSuchAlgorithmException {
+    public static int calculateDigest(String obj) {
         int res, mod= (int) Math.pow(2, Util.M-1);
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(e);
+        }
         byte[] messageDigest = md.digest(obj.getBytes());
         BigInteger no = new BigInteger(1, messageDigest);
         res=no.intValue() % (mod-1) + mod-1;

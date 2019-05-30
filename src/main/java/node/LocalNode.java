@@ -305,7 +305,7 @@ public class LocalNode implements Node{
     }
 
     private void updateSuccessorsList(){
-        List<Node> successorSuccessorsList = Collections.emptyList();
+        List<Node> successorSuccessorsList = new ArrayList<>();
         try {
             successorSuccessorsList = this._getSuccessor().getSuccessorsList();
         } catch (NetworkFailureException e) {

@@ -17,7 +17,7 @@ class PendingRequestQueue {
     private final ExecutorService pool;
     private ConcurrentLinkedDeque<Request> pendingRequests = new ConcurrentLinkedDeque<>();
     private boolean closed = false;
-    private static final long TIMEOUT=1000L;
+    private static final long TIMEOUT=5000L;
 
     PendingRequestQueue(){
         pool = Executors.newSingleThreadExecutor();
