@@ -1,15 +1,15 @@
 package network.message.reply;
 
-import com.sun.xml.internal.messaging.saaj.util.FinalArrayList;
 import node.Node;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SuccessorListReply extends ReplyMessage{
 
-    private final List<Integer> ids = new FinalArrayList();
-    private final List<String> ips = new FinalArrayList();
-    private final List <Integer> ports = new FinalArrayList();
+    private final List<Integer> ids = new ArrayList<>();
+    private final List<String> ips = new ArrayList<>();
+    private final List <Integer> ports = new ArrayList<>();
 
     public SuccessorListReply(List<Node> successorsList){
         for(int i=0; i<successorsList.size(); i++){
