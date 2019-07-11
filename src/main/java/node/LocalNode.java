@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -241,15 +240,23 @@ public class LocalNode implements Node{
 
     // TODO move externally stabilize, fixFingers and checkPredecessor
     public void stabilize(){
+        Node x;
         try {
-            //System.out.println("prciao");
-            Node x = _getSuccessor().getPredecessor();
-            //System.out.println("provaaaa "+x.getId());
-            if(x!= null && isInsideInterval(x.getId(), getId(), fingerTable.getSuccessor().getId()))
-                setSuccessor(x);
+            x = _getSuccessor().getPredecessor();
+        } catch (NetworkFailureException e) {
+            System.err.println("Failed to stabilize in node " + this.getId() +
+                    ": Failed to get predecessor");
+            return;
+        }
+
+        if(x!= null && isInsideInterval(x.getId(), getId(), fingerTable.getSuccessor().getId()))
+            setSuccessor(x);
+
+        try {
             _getSuccessor().notifyPredecessor(this);
         } catch (NetworkFailureException e) {
-            System.err.println("Failed to stabilize in node "+this.getId());
+            System.err.println("Failed to stabilize in node " + this.getId() +
+                    ": Failed to notify predecessor");
         }
     }
 
@@ -315,13 +322,15 @@ public class LocalNode implements Node{
         try {
             if(this._getSuccessor().getSuccessor().getId() != this.getId() && this._getSuccessor().getSuccessor().getId() != this._getSuccessor().getId())
                 temp.add(0, this._getSuccessor().getSuccessor());
-            else if(temp.size() > R){
+            if(temp.size() > R){
                 temp.remove(temp.size()-1);
             }
         } catch (NetworkFailureException e) {
             System.err.println("Failed to update successor list in node "+this.getId());
         }
-        setSuccessorsList(temp);
+
+        if (successorsList == null || !temp.isEmpty())
+            setSuccessorsList(temp);
     }
 
 
