@@ -372,4 +372,17 @@ public class LocalNode implements Node{
         return this;
         // TODO so far return this is enough. Consider copying it and cleaning observers, but leaving same fingerTable instance
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("id: ").append(id)
+                .append("\nad: ").append(host).append(':').append(port)
+                .append("\npred: ").append(_getPredecessor().getId())
+                .append("\nsucc list #").append(successorsList.size())
+                .append(": ");
+        successorsList.forEach(s -> sb.append(s.getId()).append(','));
+        sb.append("\nfinger table:\n").append(fingerTable.toString());
+        return sb.toString();
+    }
 }

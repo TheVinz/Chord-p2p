@@ -1,7 +1,6 @@
 package node;
 
 import network.exceptions.NetworkFailureException;
-import network.remoteNode.RemoteNode;
 
 import java.util.ArrayList;
 import java.util.List;

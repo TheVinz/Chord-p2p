@@ -66,6 +66,9 @@ public class App {
                     RemoteResource remoteResource = network.find(name);
                     System.out.println(remoteResource.fetch().getContent());
                     break;
+                case "dump":
+                    network.dumpNode();
+                    break;
             }
         }
 

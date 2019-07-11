@@ -105,4 +105,10 @@ public class ChordNetwork {
     public boolean isClosed() {
         return closed;
     }
+
+    public void dumpNode() {
+        System.out.println("======= DUMP NODE =======");
+        System.out.println(node);
+        System.out.println("=========================");
+    }
 }
