@@ -88,7 +88,7 @@ public class App {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            anchor.close();
+            anchor.stop();
         }
     }
 
