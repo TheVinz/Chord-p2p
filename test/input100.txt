@@ -1,0 +1,200 @@
+publish file_0 content_of_file_0
+publish file_1 content_of_file_1
+publish file_2 content_of_file_2
+publish file_3 content_of_file_3
+publish file_4 content_of_file_4
+publish file_5 content_of_file_5
+publish file_6 content_of_file_6
+publish file_7 content_of_file_7
+publish file_8 content_of_file_8
+publish file_9 content_of_file_9
+publish file_10 content_of_file_10
+publish file_11 content_of_file_11
+publish file_12 content_of_file_12
+publish file_13 content_of_file_13
+publish file_14 content_of_file_14
+publish file_15 content_of_file_15
+publish file_16 content_of_file_16
+publish file_17 content_of_file_17
+publish file_18 content_of_file_18
+publish file_19 content_of_file_19
+publish file_20 content_of_file_20
+publish file_21 content_of_file_21
+publish file_22 content_of_file_22
+publish file_23 content_of_file_23
+publish file_24 content_of_file_24
+publish file_25 content_of_file_25
+publish file_26 content_of_file_26
+publish file_27 content_of_file_27
+publish file_28 content_of_file_28
+publish file_29 content_of_file_29
+publish file_30 content_of_file_30
+publish file_31 content_of_file_31
+publish file_32 content_of_file_32
+publish file_33 content_of_file_33
+publish file_34 content_of_file_34
+publish file_35 content_of_file_35
+publish file_36 content_of_file_36
+publish file_37 content_of_file_37
+publish file_38 content_of_file_38
+publish file_39 content_of_file_39
+publish file_40 content_of_file_40
+publish file_41 content_of_file_41
+publish file_42 content_of_file_42
+publish file_43 content_of_file_43
+publish file_44 content_of_file_44
+publish file_45 content_of_file_45
+publish file_46 content_of_file_46
+publish file_47 content_of_file_47
+publish file_48 content_of_file_48
+publish file_49 content_of_file_49
+publish file_50 content_of_file_50
+publish file_51 content_of_file_51
+publish file_52 content_of_file_52
+publish file_53 content_of_file_53
+publish file_54 content_of_file_54
+publish file_55 content_of_file_55
+publish file_56 content_of_file_56
+publish file_57 content_of_file_57
+publish file_58 content_of_file_58
+publish file_59 content_of_file_59
+publish file_60 content_of_file_60
+publish file_61 content_of_file_61
+publish file_62 content_of_file_62
+publish file_63 content_of_file_63
+publish file_64 content_of_file_64
+publish file_65 content_of_file_65
+publish file_66 content_of_file_66
+publish file_67 content_of_file_67
+publish file_68 content_of_file_68
+publish file_69 content_of_file_69
+publish file_70 content_of_file_70
+publish file_71 content_of_file_71
+publish file_72 content_of_file_72
+publish file_73 content_of_file_73
+publish file_74 content_of_file_74
+publish file_75 content_of_file_75
+publish file_76 content_of_file_76
+publish file_77 content_of_file_77
+publish file_78 content_of_file_78
+publish file_79 content_of_file_79
+publish file_80 content_of_file_80
+publish file_81 content_of_file_81
+publish file_82 content_of_file_82
+publish file_83 content_of_file_83
+publish file_84 content_of_file_84
+publish file_85 content_of_file_85
+publish file_86 content_of_file_86
+publish file_87 content_of_file_87
+publish file_88 content_of_file_88
+publish file_89 content_of_file_89
+publish file_90 content_of_file_90
+publish file_91 content_of_file_91
+publish file_92 content_of_file_92
+publish file_93 content_of_file_93
+publish file_94 content_of_file_94
+publish file_95 content_of_file_95
+publish file_96 content_of_file_96
+publish file_97 content_of_file_97
+publish file_98 content_of_file_98
+publish file_99 content_of_file_99
+find file_0
+find file_1
+find file_2
+find file_3
+find file_4
+find file_5
+find file_6
+find file_7
+find file_8
+find file_9
+find file_10
+find file_11
+find file_12
+find file_13
+find file_14
+find file_15
+find file_16
+find file_17
+find file_18
+find file_19
+find file_20
+find file_21
+find file_22
+find file_23
+find file_24
+find file_25
+find file_26
+find file_27
+find file_28
+find file_29
+find file_30
+find file_31
+find file_32
+find file_33
+find file_34
+find file_35
+find file_36
+find file_37
+find file_38
+find file_39
+find file_40
+find file_41
+find file_42
+find file_43
+find file_44
+find file_45
+find file_46
+find file_47
+find file_48
+find file_49
+find file_50
+find file_51
+find file_52
+find file_53
+find file_54
+find file_55
+find file_56
+find file_57
+find file_58
+find file_59
+find file_60
+find file_61
+find file_62
+find file_63
+find file_64
+find file_65
+find file_66
+find file_67
+find file_68
+find file_69
+find file_70
+find file_71
+find file_72
+find file_73
+find file_74
+find file_75
+find file_76
+find file_77
+find file_78
+find file_79
+find file_80
+find file_81
+find file_82
+find file_83
+find file_84
+find file_85
+find file_86
+find file_87
+find file_88
+find file_89
+find file_90
+find file_91
+find file_92
+find file_93
+find file_94
+find file_95
+find file_96
+find file_97
+find file_98
+find file_99

@@ -2,6 +2,8 @@ package network.remoteNode;
 
 import network.exceptions.NetworkFailureException;
 import network.message.reply.ReplyMessage;
+import utils.NetworkSettings;
+import utils.SettingsManager;
 
 import java.util.Calendar;
 import java.util.Iterator;
@@ -17,11 +19,14 @@ class PendingRequestQueue {
     private final ExecutorService pool;
     private ConcurrentLinkedDeque<Request> pendingRequests = new ConcurrentLinkedDeque<>();
     private boolean closed = false;
-    private static final long TIMEOUT=5000L;
+    private long TIMEOUT;
+
+    private NetworkSettings networkSettings = SettingsManager.getNetworkSettings();
 
     PendingRequestQueue(){
         pool = Executors.newSingleThreadExecutor();
         pool.execute(this::expiredRequestCollector);
+        TIMEOUT = networkSettings.getRequestTimeout();
     }
 
     void handleReplyMessage(ReplyMessage msg){

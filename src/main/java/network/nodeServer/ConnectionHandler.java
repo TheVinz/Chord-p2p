@@ -55,8 +55,11 @@ class ConnectionHandler implements Closeable {
 
     private synchronized void handleRequest(RequestMessage msg) {
         try {
-            if(networkSettings.isDelay())
+            if(networkSettings.isDelay()) {
+                long start = System.currentTimeMillis();
                 Thread.sleep(networkSettings.getDelay());
+                System.out.println("Thread slept for " + (System.currentTimeMillis() - start) + " ms");
+            }
             ReplyMessage reply = msg.handleRequest(localNode);
             if(reply==null)
                 return;

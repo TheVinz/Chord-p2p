@@ -14,11 +14,15 @@ public class SettingsManager {
             File file = new File(filename);
             File dir = new File(dirname);
             if(!file.exists()){
+                if(!dir.exists())
+                    dir.mkdirs();
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 try(FileWriter fileWriter = new FileWriter(file);
                     PrintWriter printWriter = new PrintWriter(fileWriter)){
-                    if(!dir.exists())
-                        dir.mkdirs();
-                    file.createNewFile();
                     networkSettings = new NetworkSettings();
                     Gson gson = new Gson();
                     printWriter.println(gson.toJson(networkSettings));
