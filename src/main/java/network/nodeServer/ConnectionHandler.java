@@ -3,6 +3,8 @@ package network.nodeServer;
 import network.message.reply.ReplyMessage;
 import network.message.request.RequestMessage;
 import node.LocalNode;
+import utils.NetworkSettings;
+import utils.SettingsManager;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -24,6 +26,8 @@ class ConnectionHandler implements Closeable {
     private final LocalNode localNode;
     private final ExecutorService pool;
     private boolean closed=false;
+
+    private NetworkSettings networkSettings = SettingsManager.getNetworkSettings();
 
     ConnectionHandler(Socket socket, LocalNode localNode) throws IOException {
         this.socket = socket;
@@ -51,6 +55,8 @@ class ConnectionHandler implements Closeable {
 
     private synchronized void handleRequest(RequestMessage msg) {
         try {
+            if(networkSettings.isDelay())
+                Thread.sleep(networkSettings.getDelay());
             ReplyMessage reply = msg.handleRequest(localNode);
             if(reply==null)
                 return;
@@ -59,6 +65,8 @@ class ConnectionHandler implements Closeable {
             oos.flush();
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Troubles in sending out the reply: ", e.getMessage());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
