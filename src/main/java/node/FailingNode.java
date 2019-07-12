@@ -40,7 +40,7 @@ public class FailingNode extends StabilizerNode {
 
         this.hasFailed = hasFailed;
         if(hasFailed)
-            super.close();
+            super.stop();
     }
 
     /*

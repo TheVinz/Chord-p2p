@@ -1,7 +1,6 @@
 package node;
 
 import network.exceptions.NetworkFailureException;
-import network.remoteNode.RemoteNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,8 +112,7 @@ public class StabilizerNode extends LocalNode {
     /**
      * If the server is running, stops every periodic action scheduled.
      */
-    @Override
-    public void close() {
+    public void stop() {
         System.out.println("This node has been closed!");
         if(running) {
             for (PeriodicAction pa : periodicActions)

@@ -63,7 +63,10 @@ public class RemoteNode implements Node {
             Request request = outputBuffer.sendRequest(new FindSuccessorRequest(id));
             NodeReply reply = (NodeReply) queue.submitRequest(request);
 
-            return new RemoteNode(reply.getId(), reply.getIp(), reply.getPort());
+            if(reply.isNotFound())
+                return null;
+            else
+                return new RemoteNode(reply.getId(), reply.getIp(), reply.getPort());
         }
         catch (NetworkFailureException e){
             e.setMessage("Failed to contact Node " + this.id + " on findSuccessor");

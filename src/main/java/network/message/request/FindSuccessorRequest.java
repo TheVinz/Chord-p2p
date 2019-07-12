@@ -26,7 +26,7 @@ public class FindSuccessorRequest extends RequestMessage {
             return reply;
         } catch (NetworkFailureException e) {
             e.printStackTrace();
-            return null;
+            return new NodeReply();
         }
     }
 

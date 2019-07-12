@@ -142,7 +142,7 @@ public class SimpleTester {
 
     private void tearDown() {
         for (Node node : stabilizerNodes)
-            ((StabilizerNode)node).close();
+            ((StabilizerNode)node).stop();
     }
 
     public void checkFingerTable(List<Node> stabilizerNodes, List<Node> testNodes) {

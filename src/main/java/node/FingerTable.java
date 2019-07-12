@@ -84,4 +84,17 @@ public class FingerTable {
     FingerTableEntry getFingerTableEntry(int index) {
         return entries[index];
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("| %4s | %5s | %7s |\n",
+                "i-th", "start", "node id"));
+        sb.append("+------+-------+---------+\n");
+        int i = 0;
+        for (FingerTableEntry e: entries)
+            sb.append(String.format("| %4d | %5d | %7d |\n",
+                    i++, e.getStart(), e.getNode().getId()));
+        return sb.toString();
+    }
 }

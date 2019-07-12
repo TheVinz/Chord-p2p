@@ -93,7 +93,7 @@ public class ChordNetwork {
             serverThread = null;
 
             if (node != null)
-                node.close();
+                node.stop();
 
             if (server != null) // TODO: message level lock to block message deliverie to application
                 server.close();
@@ -104,5 +104,11 @@ public class ChordNetwork {
 
     public boolean isClosed() {
         return closed;
+    }
+
+    public void dumpNode() {
+        System.out.println("======= DUMP NODE =======");
+        System.out.println(node);
+        System.out.println("=========================");
     }
 }
