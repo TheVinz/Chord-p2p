@@ -16,7 +16,6 @@ public abstract class Util {
     private static final Consumer<LocalNode> FIX_FINGER_ROUTINE = LocalNode::fixFingers;
     private static final Consumer<LocalNode> CHECK_PREDECESSOR_ROUTINE = LocalNode::checkPredecessor;
     private static final Consumer<LocalNode> CHECK_SUCCESSOR_ROUTINE = LocalNode::checkSuccessor;
-    //private static final Consumer<LocalNode> UPDATE_SUCCESSOR_LIST_ROUTINE = LocalNode::checkSuccessor;
     private static final Consumer<LocalNode>[] DEFAULT_ROUTINES = new Consumer[]{STABILIZER_ROUTINE, FIX_FINGER_ROUTINE, CHECK_PREDECESSOR_ROUTINE, CHECK_SUCCESSOR_ROUTINE};
     private static final String[] defaultLabels = new String[]{"stabilizer", "fix_fingers", "check_predecessor", "check_successor"};
 

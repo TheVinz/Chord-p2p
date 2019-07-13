@@ -4,6 +4,8 @@ import network.nodeServer.NodeServer;
 import node.StabilizerNode;
 import resource.RemoteResource;
 import utils.LogFormatter;
+import utils.NetworkSettings;
+import utils.SettingsManager;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -69,6 +71,8 @@ public class App {
                 case "dump":
                     network.dumpNode();
                     break;
+                default:
+                    System.err.printf("Command `%s` not found\n", input);
             }
         }
 
@@ -79,9 +83,10 @@ public class App {
         LogFormatter.logSetup(Level.FINER);
 
         int id = ChordNetwork.calculateDigest(nodeHost + ":" + nodePort);
+        NetworkSettings config = SettingsManager.getNetworkSettings();
 
-        StabilizerNode anchor =
-                createDefaultStabilizerNode(id, nodeHost, nodePort, new long[]{500, 800, 1000, 1000}, new long[]{250, 250, 250, 250});
+        StabilizerNode anchor = createDefaultStabilizerNode(id, nodeHost, nodePort,
+                        config.getRoutineDelays(), config.getRoutinePeriods());
         anchor.start();
         try(NodeServer server = new NodeServer(anchor, nodePort)) {
             server.loop();

@@ -5,6 +5,8 @@ import node.Node;
 import node.StabilizerNode;
 import resource.ChordResource;
 import resource.RemoteResource;
+import utils.NetworkSettings;
+import utils.SettingsManager;
 import utils.Util;
 
 import java.io.IOException;
@@ -29,10 +31,12 @@ public class ChordNetwork {
         System.out.println("id: " + nodeId);
 
         Node anchor = new RemoteNode(anchorId, anchorHost, anchorPort);
+        NetworkSettings config = SettingsManager.getNetworkSettings();
 
         try {
             closed = false;
-            node = Util.createDefaultStabilizerNode(nodeId, anchor, nodeHost, nodePort, new long[]{500, 800, 1000, 1000}, new long[]{250, 250, 250, 250});
+            node = Util.createDefaultStabilizerNode(nodeId, anchor, nodeHost, nodePort,
+                    config.getRoutineDelays(), config.getRoutinePeriods());
             node.start();
             server = new NodeServer(node, nodePort);
             serverThread = new Thread(server::loop, "server loop");
