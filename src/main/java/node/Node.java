@@ -89,4 +89,8 @@ public interface Node {
      * @return the copy of this node
      */
     Node wrap();
+
+    //Boolean notifyPublish(int idResource);
+
+    //void notifyDelete(int idResource);
 }

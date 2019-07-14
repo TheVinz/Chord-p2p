@@ -6,6 +6,7 @@ import resource.RemoteResource;
 import utils.LogFormatter;
 import utils.NetworkSettings;
 import utils.SettingsManager;
+import utils.Util;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -13,7 +14,7 @@ import java.util.logging.Level;
 
 import static utils.Util.createDefaultStabilizerNode;
 
-public class App {
+public class ProtocolMain {
 
     @Parameter(names = {"--anchor-host", "-a"}, description = "Host of the node to join")
     private String anchorHost = "localhost";
@@ -82,7 +83,7 @@ public class App {
     private void startAnchorMode() {
         LogFormatter.logSetup(Level.FINER);
 
-        int id = ChordNetwork.calculateDigest(nodeHost + ":" + nodePort);
+        int id = Util.calculateDigest(nodeHost + ":" + nodePort);
         NetworkSettings config = SettingsManager.getNetworkSettings();
 
         StabilizerNode anchor = createDefaultStabilizerNode(id, nodeHost, nodePort,
@@ -98,17 +99,17 @@ public class App {
     }
 
     public static void main(String[] args) {
-        App app = new App();
+        ProtocolMain protocolMain = new ProtocolMain();
         JCommander parser = JCommander.newBuilder()
-                .addObject(app)
+                .addObject(protocolMain)
                 .build();
 
         parser.parse(args);
 
-        if (app.help) {
+        if (protocolMain.help) {
             parser.usage();
             return;
         }
-        app.run();
+        protocolMain.run();
     }
 }

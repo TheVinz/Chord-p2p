@@ -10,9 +10,6 @@ import utils.SettingsManager;
 import utils.Util;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,8 +23,8 @@ public class ChordNetwork {
 
     public void join(String anchorHost, int anchorPort, String nodeHost, int nodePort) {
         int anchorId, nodeId;
-        anchorId = calculateDigest(anchorHost +":"+ anchorPort);
-        nodeId = calculateDigest(nodeHost +":"+ nodePort);
+        anchorId = Util.calculateDigest(anchorHost +":"+ anchorPort);
+        nodeId = Util.calculateDigest(nodeHost +":"+ nodePort);
         System.out.println("id: " + nodeId);
 
         Node anchor = new RemoteNode(anchorId, anchorHost, anchorPort);
@@ -61,7 +58,7 @@ public class ChordNetwork {
 
     public void publish(String title, String content){
         try {
-            int id = calculateDigest(title);
+            int id = Util.calculateDigest(title);
             Node n = node.findSuccessor(id).wrap();
             n.publish(new ChordResource(title, content));
             n.close();
@@ -72,25 +69,11 @@ public class ChordNetwork {
 
     public RemoteResource find(String title){
         synchronized (this) {
-            int id = calculateDigest(title);
+            int id = Util.calculateDigest(title);
             return new RemoteResource(node, title, id);
         }
     }
 
-
-    public static int calculateDigest(String obj) {
-        int res, mod= (int) Math.pow(2, Util.M-1);
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException(e);
-        }
-        byte[] messageDigest = md.digest(obj.getBytes());
-        BigInteger no = new BigInteger(1, messageDigest);
-        res=no.intValue() % (mod-1) + mod-1;
-        return res;
-    }
 
     private void prepareToExit() {
         if(!closed) {

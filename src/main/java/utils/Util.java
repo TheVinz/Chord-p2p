@@ -1,11 +1,15 @@
 package utils;
 
+import distributedDB.ResourceManager;
 import network.exceptions.NetworkFailureException;
 import node.LocalNode;
 import node.Node;
 import node.StabilizerNode;
 import node.FailingNode;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.function.Consumer;
 
 public abstract class Util {
@@ -51,5 +55,19 @@ public abstract class Util {
 
     public static StabilizerNode createDefaultStabilizerNode(int id, Node toJoin, String ip, int port, long[] delays, long[] periods) throws NetworkFailureException {
         return new StabilizerNode(id, toJoin, ip, port, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+    }
+
+    public static int calculateDigest(String obj) {
+        int res, mod= (int) Math.pow(2, M -1);
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(e);
+        }
+        byte[] messageDigest = md.digest(obj.getBytes());
+        BigInteger no = new BigInteger(1, messageDigest);
+        res=no.intValue() % (mod-1) + mod-1;
+        return res;
     }
 }
