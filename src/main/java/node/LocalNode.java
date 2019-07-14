@@ -87,6 +87,8 @@ public class LocalNode implements Node{
             }catch (NetworkFailureException e){
                 result = findSuccessorFailureHandler(id);
             }
+            if(result == null)
+                throw new NetworkFailureException();
             if (result.getId() == getId())
                 result = this;
             return result;
