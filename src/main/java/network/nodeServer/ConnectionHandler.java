@@ -53,19 +53,19 @@ class ConnectionHandler implements Closeable {
         }
     }
 
-    private synchronized void handleRequest(RequestMessage msg) {
+    private void handleRequest(RequestMessage msg) {
         try {
             if(networkSettings.isDelay()) {
-                long start = System.currentTimeMillis();
                 Thread.sleep(networkSettings.getDelay());
-                System.out.println("Thread slept for " + (System.currentTimeMillis() - start) + " ms");
             }
             ReplyMessage reply = msg.handleRequest(localNode);
             if(reply==null)
                 return;
             reply.setRequestId(msg.getRequestId());
-            oos.writeObject(reply);
-            oos.flush();
+            synchronized (this) {
+                oos.writeObject(reply);
+                oos.flush();
+            }
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Troubles in sending out the reply: ", e.getMessage());
         } catch (InterruptedException e) {

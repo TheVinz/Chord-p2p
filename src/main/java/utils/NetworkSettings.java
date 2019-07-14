@@ -5,16 +5,16 @@ import java.util.Random;
 public class NetworkSettings {
 
     private boolean delay=false;
-    private long maxDelay=500;
+    private int maxDelay=500;
     private long requestTimeout = 5000;
     private long stabilizeDelay = 500;
-    private long stabilizePeriod = 250;
+    private long stabilizePeriod = 1000;
     private long fixFingerDelay = 800;
-    private long fixFingerPeriod = 250;
+    private long fixFingerPeriod = 1000;
     private long checkPredecessorDelay = 1000;
-    private long checkPredecessorPeriod = 250;
+    private long checkPredecessorPeriod = 500;
     private long checkSuccessorDelay = 1000;
-    private long checkSuccessorPeriod = 250;
+    private long checkSuccessorPeriod = 500;
 
 
     public boolean isDelay() {
@@ -22,7 +22,7 @@ public class NetworkSettings {
     }
 
     public long getDelay(){
-            return (new Random()).nextLong() % maxDelay;
+            return (new Random()).nextInt(maxDelay);
     }
 
     public long getRequestTimeout(){
