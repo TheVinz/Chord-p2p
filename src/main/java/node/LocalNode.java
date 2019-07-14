@@ -385,9 +385,10 @@ public class LocalNode implements Node{
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        Node pred = _getPredecessor();
         sb.append("id: ").append(id)
                 .append("\nad: ").append(host).append(':').append(port)
-                .append("\npred: ").append(_getPredecessor().getId())
+                .append("\npred: ").append(pred == null ? "null" : pred.getId())
                 .append("\nsucc list #").append(successorsList.size())
                 .append(": ");
         successorsList.forEach(s -> sb.append(s.getId()).append(','));
