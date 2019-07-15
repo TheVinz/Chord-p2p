@@ -288,45 +288,53 @@ public class LocalNode implements Node{
         }
     }
 
-    public void checkSuccessor() {
-        try {
-            _getSuccessor().hasFailed();
-        } catch(NetworkFailureException e) { // Successor has failed
+    private void fixSuccessor(){
+        if(successorsList == null)
+            return;
+        synchronized (successorsList) {
             Node before = _getSuccessor();
-            System.err.println("Successor "+this._getSuccessor().getId()+ " failed in node "+this.getId());
+            System.err.println("Successor " + this._getSuccessor().getId() + " failed in node " + this.getId());
             if (successorsList.size() > 0) {
                 this.setSuccessor(successorsList.get(0));
                 successorsList.remove(0);
-            } else{
+            } else {
                 this.setSuccessor(this);
                 System.out.println("This is the only node in the network now!");
             }
 
-            System.out.println("New successor in node "+this.getId()+": "+before.getId()+" -> "+this._getSuccessor().getId());
+            System.out.println("New successor in node " + this.getId() + ": " + before.getId() + " -> " + this._getSuccessor().getId());
+        }
+    }
+
+    public void checkSuccessor() {
+        try {
+            _getSuccessor().hasFailed();
+        } catch(NetworkFailureException e) { // Successor has failed
+            fixSuccessor();
         }
         updateSuccessorsList();
     }
 
     private void updateSuccessorsList(){
-        List<Node> successorSuccessorsList = new ArrayList<>();
-        try {
-            successorSuccessorsList = this._getSuccessor().getSuccessorsList();
-        } catch (NetworkFailureException e) {
-            System.err.println("Failed to retrieve successorList in node "+this.getId());
-        }
-        List<Node> temp = (List) ((ArrayList) successorSuccessorsList).clone();
-        try {
-            if(this._getSuccessor().getSuccessor().getId() != this.getId() && this._getSuccessor().getSuccessor().getId() != this._getSuccessor().getId())
-                temp.add(0, this._getSuccessor().getSuccessor());
-            if(temp.size() > R){
-                temp.remove(temp.size()-1);
+            List<Node> successorSuccessorsList = new ArrayList<>();
+            try {
+                successorSuccessorsList = this._getSuccessor().getSuccessorsList();
+            } catch (NetworkFailureException e) {
+                System.err.println("Failed to retrieve successorList in node " + this.getId());
             }
-        } catch (NetworkFailureException e) {
-            System.err.println("Failed to update successor list in node "+this.getId());
-        }
+            List<Node> temp = (List) ((ArrayList) successorSuccessorsList).clone();
+            try {
+                if (this._getSuccessor().getSuccessor().getId() != this.getId() && this._getSuccessor().getSuccessor().getId() != this._getSuccessor().getId())
+                    temp.add(0, this._getSuccessor().getSuccessor());
+                if (temp.size() > R) {
+                    temp.remove(temp.size() - 1);
+                }
+            } catch (NetworkFailureException e) {
+                System.err.println("Failed to update successor list in node " + this.getId());
+            }
 
-        if (successorsList == null || !temp.isEmpty())
-            setSuccessorsList(temp);
+            if (successorsList == null || !temp.isEmpty())
+                setSuccessorsList(temp);
     }
 
 
@@ -336,7 +344,9 @@ public class LocalNode implements Node{
     }
 
     public void setSuccessorsList(List<Node> successorsList) {
-        this.successorsList = successorsList;
+        synchronized (successorsList) {
+            this.successorsList = successorsList;
+        }
     }
 
 

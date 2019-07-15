@@ -237,6 +237,7 @@ public class ResourceManager {
         } catch (NetworkFailureException e) {
             e.printStackTrace();
         }
+        destination.close();
     }
 
     @Override
