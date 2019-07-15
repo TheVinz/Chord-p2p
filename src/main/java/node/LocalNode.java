@@ -215,7 +215,7 @@ public class LocalNode implements Node{
     public ChordResource fetch(String name) {
         File file = new File("data/node_"+this.id + "/" +name);
         if(!file.exists())
-            return new ChordResource(name, "");
+            return new ChordResource(name);
         else{
             try(Scanner sc = new Scanner(new FileInputStream(file))) {
                 String content = sc.nextLine();
@@ -224,7 +224,7 @@ public class LocalNode implements Node{
                 e.printStackTrace();
             }
         }
-        return new ChordResource(name, "");
+        return new ChordResource(name);
     }
 
     /**

@@ -16,6 +16,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static utils.Util.createDefaultStabilizerNode;
+
 public class ChordNetwork {
     private static final Logger LOGGER = Logger.getLogger(ChordNetwork.class.getSimpleName());
 
@@ -56,6 +58,25 @@ public class ChordNetwork {
         } finally {
             anchor.close();
             LOGGER.log(Level.INFO, "Initial anchor node closed");
+        }
+    }
+
+    public void create(String nodeHost, int nodePort) {
+        int id = ChordNetwork.calculateDigest(nodeHost + ":" + nodePort);
+        NetworkSettings config = SettingsManager.getNetworkSettings();
+
+        try {
+            closed = false;
+            node = createDefaultStabilizerNode(id, nodeHost, nodePort,
+                    config.getRoutineDelays(), config.getRoutinePeriods());
+            node.start();
+            server = new NodeServer(node, nodePort);
+            serverThread = new Thread(server::loop, "server loop");
+            serverThread.start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            prepareToExit();
         }
     }
 

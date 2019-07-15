@@ -1,17 +1,12 @@
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import network.nodeServer.NodeServer;
-import node.StabilizerNode;
+import resource.ChordResource;
 import resource.RemoteResource;
 import utils.LogFormatter;
 import utils.NetworkSettings;
 import utils.SettingsManager;
 
-import java.io.IOException;
 import java.util.Scanner;
-import java.util.logging.Level;
-
-import static utils.Util.createDefaultStabilizerNode;
 
 public class App {
 
@@ -41,60 +36,23 @@ public class App {
     private boolean join = false;
 
     private void run() {
-        if (join)
-            joinChordNetwork();
-        else
-            startAnchorMode();
-    }
-
-    private void joinChordNetwork() {
-        System.out.println(nodePort);
-        LogFormatter.logSetup(Level.FINE);
-
         ChordNetwork network = new ChordNetwork();
-        network.join(anchorHost, anchorPort, nodeHost, nodePort);
 
-        Scanner sc = new Scanner(System.in);
-        while (!network.isClosed()) {
-            String input = sc.next(), name, content;
-            switch (input) {
-                case "publish":
-                    name = sc.next();
-                    content = sc.next();
-                    network.publish(name, content);
-                    break;
-                case "find":
-                    name = sc.next();
-                    RemoteResource remoteResource = network.find(name);
-                    System.out.println(remoteResource.fetch().getContent());
-                    break;
-                case "dump":
-                    network.dumpNode();
-                    break;
-                default:
-                    System.err.printf("Command `%s` not found\n", input);
-            }
-        }
+        if (join)
+            joinChordNetwork(network);
+        else
+            startAnchorMode(network);
 
-        sc.close();
+        evalInput(network);
     }
 
-    private void startAnchorMode() {
-        LogFormatter.logSetup(Level.FINER);
+    private void joinChordNetwork(ChordNetwork network) {
+        network.join(anchorHost, anchorPort, nodeHost, nodePort);
+    }
 
-        int id = ChordNetwork.calculateDigest(nodeHost + ":" + nodePort);
-        NetworkSettings config = SettingsManager.getNetworkSettings();
 
-        StabilizerNode anchor = createDefaultStabilizerNode(id, nodeHost, nodePort,
-                        config.getRoutineDelays(), config.getRoutinePeriods());
-        anchor.start();
-        try(NodeServer server = new NodeServer(anchor, nodePort)) {
-            server.loop();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            anchor.stop();
-        }
+    private void startAnchorMode(ChordNetwork network) {
+        network.create(nodeHost, nodePort);
     }
 
     public static void main(String[] args) {
@@ -109,6 +67,41 @@ public class App {
             parser.usage();
             return;
         }
+
+
+        NetworkSettings config = SettingsManager.getNetworkSettings();
+        LogFormatter.logSetup(config.getLoggingLevel());
+
         app.run();
+    }
+
+    private static void evalInput(ChordNetwork network) {
+        Scanner sc = new Scanner(System.in);
+        while (!network.isClosed()) {
+            String input = sc.next(), name, content;
+            switch (input) {
+                case "publish":
+                    name = sc.next();
+                    content = sc.next();
+                    network.publish(name, content);
+                    break;
+                case "find":
+                    name = sc.next();
+                    RemoteResource remoteResource = network.find(name);
+                    ChordResource resource = remoteResource.fetch();
+                    if (resource.isNotFound())
+                        System.err.println("Resource [" + resource.getTitle() + "] not found.");
+                    else
+                        System.out.println(resource.getContent());
+                    break;
+                case "dump":
+                    network.dumpNode();
+                    break;
+                default:
+                    System.err.printf("Command `%s` not found\n", input);
+            }
+        }
+
+        sc.close();
     }
 }
