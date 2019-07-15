@@ -13,8 +13,8 @@ public class TestNode extends LocalNode {
 
 
 
-    public TestNode(int id) {
-        super(id);
+    public TestNode(int id) throws NetworkFailureException {
+        super(id, null);
     }
 
     public Node findSuccessor(int id) throws NetworkFailureException {

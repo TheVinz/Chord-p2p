@@ -39,7 +39,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>ProtocolMain</mainClass>
+                            <mainClass>App</mainClass>
                         </manifest>
                     </archive>
                     <finalName>chord-1.0-SNAPSHOT-full</finalName>

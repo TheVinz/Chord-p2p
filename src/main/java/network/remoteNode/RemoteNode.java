@@ -1,10 +1,7 @@
 package network.remoteNode;
 
 import network.exceptions.NetworkFailureException;
-import network.message.reply.NodeReply;
-import network.message.reply.ReplyMessage;
-import network.message.reply.ResourceReply;
-import network.message.reply.SuccessorListReply;
+import network.message.reply.*;
 import network.message.request.*;
 import node.Node;
 import resource.ChordResource;
@@ -204,4 +201,33 @@ public class RemoteNode implements Node {
     public Node wrap() {
         return new RemoteNode(getId(), getIp(), getPort());
     }
+
+    @Override
+    public Boolean notifyPropagation(String title) throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        RequestMessage msg = new NotifyPropagationRequest(title);
+        Request request = outputBuffer.sendRequest(msg);
+        NotifyPropagationReply notifyPropagationReply = (NotifyPropagationReply) queue.submitRequest(request);
+        return notifyPropagationReply.isPresent();
+    }
+
+    @Override
+    public void notifyDelete(String title) throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        DeleteRequest msg = new DeleteRequest(title);
+        outputBuffer.sendRequest(msg);
+
+    }
+
+    @Override
+    public void sendReplica(ChordResource chordResource) throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        ReplicaRequest msg = new ReplicaRequest(chordResource);
+        outputBuffer.sendRequest(msg);
+    }
+
+
 }

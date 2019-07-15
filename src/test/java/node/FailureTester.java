@@ -46,13 +46,13 @@ public class FailureTester extends SimpleTester {
     }
 
     @Override
-    public StabilizerNode createStabilizerNode(int id, long[] delays, long[] periods){
-        return createDefaultStabilizerNode(id, delays, periods, true);
+    public StabilizerNode createStabilizerNode(int id, long[] delays, long[] periods) throws NetworkFailureException {
+        return createDefaultStabilizerNode(id, delays, periods, true, null);
     }
 
     @Override
     public StabilizerNode createStabilizerNode(int id, Node node, long[] delays, long[] periods) throws NetworkFailureException {
-        return createDefaultStabilizerNode(id, node, delays, periods, true);
+        return createDefaultStabilizerNode(id, node, delays, periods, true, null);
     }
 
 }

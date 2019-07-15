@@ -67,12 +67,12 @@ public class SimpleTester {
         }
     }
 
-    public StabilizerNode createStabilizerNode(int id, long[] delays, long[] periods){
-        return createDefaultStabilizerNode(id, delays, periods, false);
+    public StabilizerNode createStabilizerNode(int id, long[] delays, long[] periods) throws NetworkFailureException {
+        return createDefaultStabilizerNode(id, delays, periods, false, null);
     }
 
     public StabilizerNode createStabilizerNode(int id, Node node, long[] delays, long[] periods) throws  NetworkFailureException {
-        return createDefaultStabilizerNode(id, node, delays, periods, false);
+        return createDefaultStabilizerNode(id, node, delays, periods, false, null);
     }
 
     private void setup() {
@@ -83,11 +83,19 @@ public class SimpleTester {
             booleans[i]=true;
         booleans[0] = false;
 
-        stabilizerSource = createStabilizerNode(0, delays, periods);
+        try {
+            stabilizerSource = createStabilizerNode(0, delays, periods);
+        } catch (NetworkFailureException e) {
+            e.printStackTrace();
+        }
         stabilizerSource.start();
         stabilizerNodes.add(stabilizerSource);
 
-        testSource = new TestNode(0);
+        try {
+            testSource = new TestNode(0);
+        } catch (NetworkFailureException e) {
+            e.printStackTrace();
+        }
         testNodes.add(testSource);
 
         Random rnd = new Random(10);
@@ -101,7 +109,12 @@ public class SimpleTester {
             while(id == 0)
                 id = rnd.nextInt(n);
             if(booleans[id]) {
-                TestNode testNode = new TestNode(id);
+                TestNode testNode = null;
+                try {
+                    testNode = new TestNode(id);
+                } catch (NetworkFailureException e) {
+                    e.printStackTrace();
+                }
                 testNodes.add(testNode);
                 boolean correctJoin = false;
                 while(!correctJoin) {

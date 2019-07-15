@@ -1,3 +1,4 @@
+import distributedDB.ResourceManager;
 import network.exceptions.NetworkFailureException;
 import network.nodeServer.NodeServer;
 import network.remoteNode.RemoteNode;
@@ -12,6 +13,8 @@ import utils.Util;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static utils.ResourceUtil.createDefaultResourceManager;
 
 public class ChordNetwork {
     private static final Logger LOGGER = Logger.getLogger(ChordNetwork.class.getSimpleName());
@@ -32,8 +35,9 @@ public class ChordNetwork {
 
         try {
             closed = false;
+            ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{1000, 1000});
             node = Util.createDefaultStabilizerNode(nodeId, anchor, nodeHost, nodePort,
-                    config.getRoutineDelays(), config.getRoutinePeriods());
+                    config.getRoutineDelays(), config.getRoutinePeriods(), resourceManager);
             node.start();
             server = new NodeServer(node, nodePort);
             serverThread = new Thread(server::loop, "server loop");

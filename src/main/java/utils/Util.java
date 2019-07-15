@@ -31,30 +31,30 @@ public abstract class Util {
         else return id!=start; //
     }
 
-    public static StabilizerNode createDefaultStabilizerNode(int id, long[] delays, long[] periods, boolean withFailure) {
+    public static StabilizerNode createDefaultStabilizerNode(int id, long[] delays, long[] periods, boolean withFailure, ResourceManager resourceManager) throws NetworkFailureException {
         if(!withFailure)
-            return new StabilizerNode(id, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+            return new StabilizerNode(id, DEFAULT_ROUTINES, defaultLabels, delays, periods, resourceManager);
         else
             return new FailingNode(id, DEFAULT_ROUTINES, defaultLabels, delays, periods);
     }
 
-    public static StabilizerNode createDefaultStabilizerNode(int id, String host, int port, long[] delays, long[] periods) {
-        return new StabilizerNode(id, host, port, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+    public static StabilizerNode createDefaultStabilizerNode(int id, String host, int port, long[] delays, long[] periods, ResourceManager resourceManager) throws NetworkFailureException {
+        return new StabilizerNode(id, host, port, DEFAULT_ROUTINES, defaultLabels, delays, periods, resourceManager);
     }
 
-    public static StabilizerNode createDefaultStabilizerNode(int id, Node node, long[] delays, long[] periods, boolean withFailure) throws NetworkFailureException {
+    public static StabilizerNode createDefaultStabilizerNode(int id, Node node, long[] delays, long[] periods, boolean withFailure, ResourceManager resourceManager) throws NetworkFailureException {
         if(!withFailure)
-            return new StabilizerNode(id, node, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+            return new StabilizerNode(id, node, DEFAULT_ROUTINES, defaultLabels, delays, periods, resourceManager);
         else
             return new FailingNode(id, node, DEFAULT_ROUTINES, defaultLabels, delays, periods);
     }
 
-    public static StabilizerNode createDefaultStabilizerNode(int id, Node toJoin, long[] delays, long[] periods) throws NetworkFailureException {
-        return new StabilizerNode(id, toJoin, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+    public static StabilizerNode createDefaultStabilizerNode(int id, Node toJoin, long[] delays, long[] periods, ResourceManager resourceManager) throws NetworkFailureException {
+        return new StabilizerNode(id, toJoin, DEFAULT_ROUTINES, defaultLabels, delays, periods, resourceManager);
     }
 
-    public static StabilizerNode createDefaultStabilizerNode(int id, Node toJoin, String ip, int port, long[] delays, long[] periods) throws NetworkFailureException {
-        return new StabilizerNode(id, toJoin, ip, port, DEFAULT_ROUTINES, defaultLabels, delays, periods);
+    public static StabilizerNode createDefaultStabilizerNode(int id, Node toJoin, String ip, int port, long[] delays, long[] periods, ResourceManager resourceManager) throws NetworkFailureException {
+        return new StabilizerNode(id, toJoin, ip, port, DEFAULT_ROUTINES, defaultLabels, delays, periods, resourceManager);
     }
 
     public static int calculateDigest(String obj) {

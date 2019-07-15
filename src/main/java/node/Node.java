@@ -90,7 +90,9 @@ public interface Node {
      */
     Node wrap();
 
-    //Boolean notifyPublish(int idResource);
+    Boolean notifyPropagation(String title) throws NetworkFailureException;
 
-    //void notifyDelete(int idResource);
+    void notifyDelete(String title) throws NetworkFailureException;
+
+    void sendReplica(ChordResource chordResource) throws NetworkFailureException;
 }

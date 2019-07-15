@@ -1,5 +1,7 @@
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import distributedDB.ResourceManager;
+import network.exceptions.NetworkFailureException;
 import network.nodeServer.NodeServer;
 import node.StabilizerNode;
 import resource.RemoteResource;
@@ -9,12 +11,14 @@ import utils.SettingsManager;
 import utils.Util;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 
+import static utils.ResourceUtil.createDefaultResourceManager;
 import static utils.Util.createDefaultStabilizerNode;
 
-public class ProtocolMain {
+public class App {
 
     @Parameter(names = {"--anchor-host", "-a"}, description = "Host of the node to join")
     private String anchorHost = "localhost";
@@ -41,7 +45,7 @@ public class ProtocolMain {
     @Parameter(names = {"--join", "-j"})
     private boolean join = false;
 
-    private void run() {
+    private void run() throws NetworkFailureException {
         if (join)
             joinChordNetwork();
         else
@@ -80,14 +84,16 @@ public class ProtocolMain {
         sc.close();
     }
 
-    private void startAnchorMode() {
+    private void startAnchorMode() throws NetworkFailureException {
         LogFormatter.logSetup(Level.FINER);
 
         int id = Util.calculateDigest(nodeHost + ":" + nodePort);
         NetworkSettings config = SettingsManager.getNetworkSettings();
 
+        ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{1000, 1000});
+
         StabilizerNode anchor = createDefaultStabilizerNode(id, nodeHost, nodePort,
-                        config.getRoutineDelays(), config.getRoutinePeriods());
+                        config.getRoutineDelays(), config.getRoutinePeriods(), resourceManager);
         anchor.start();
         try(NodeServer server = new NodeServer(anchor, nodePort)) {
             server.loop();
@@ -99,7 +105,7 @@ public class ProtocolMain {
     }
 
     public static void main(String[] args) {
-        ProtocolMain protocolMain = new ProtocolMain();
+        App protocolMain = new App();
         JCommander parser = JCommander.newBuilder()
                 .addObject(protocolMain)
                 .build();
@@ -110,6 +116,10 @@ public class ProtocolMain {
             parser.usage();
             return;
         }
-        protocolMain.run();
+        try {
+            protocolMain.run();
+        } catch (NetworkFailureException e) {
+            e.printStackTrace();
+        }
     }
 }

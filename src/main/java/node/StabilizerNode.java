@@ -1,12 +1,9 @@
 package node;
 
+import distributedDB.ResourceManager;
 import network.exceptions.NetworkFailureException;
 import utils.PeriodicActionsManager;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Consumer;
 
 /**
@@ -28,15 +25,15 @@ public class StabilizerNode extends LocalNode {
      *                (w.r.t. to the order of tasks)
      */
     public StabilizerNode(int id, Consumer<LocalNode>[] tasks, String[] labels,
-                          long[] delays, long[] periods) {
-        super(id);
+                          long[] delays, long[] periods, ResourceManager resourceManager) throws NetworkFailureException {
+        super(id, resourceManager);
         periodicActionsManager.initPeriodicActions(this, tasks, labels, delays, periods);
     }
 
     public StabilizerNode(int id, String host, int port,
                           Consumer<LocalNode>[] tasks, String[] labels,
-                          long[] delays, long[] periods) {
-        super(id, host, port);
+                          long[] delays, long[] periods, ResourceManager resourceManager) throws NetworkFailureException {
+        super(id, host, port, resourceManager);
         periodicActionsManager.initPeriodicActions(this, tasks, labels, delays, periods);
     }
 
@@ -50,15 +47,15 @@ public class StabilizerNode extends LocalNode {
      *                (w.r.t. to the order of tasks)
      */
     public StabilizerNode(int id, Node n, Consumer<LocalNode>[] tasks, String[] labels,
-                          long[] delays, long[] periods) throws NetworkFailureException {
-        super(id, n);
+                          long[] delays, long[] periods, ResourceManager resourceManager) throws NetworkFailureException {
+        super(id, n, resourceManager);
         periodicActionsManager.initPeriodicActions(this, tasks, labels, delays, periods);
     }
 
     public StabilizerNode(int id, Node n, String host, int port,
                           Consumer<LocalNode>[] tasks, String[] labels,
-                          long[] delays, long[] periods) throws NetworkFailureException {
-        super(id, host, port, n);
+                          long[] delays, long[] periods, ResourceManager resourceManager) throws NetworkFailureException {
+        super(id, host, port, n, resourceManager);
         periodicActionsManager.initPeriodicActions(this, tasks, labels, delays, periods);
     }
 
