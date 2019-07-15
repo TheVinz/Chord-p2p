@@ -1,97 +1,92 @@
 package node;
 
-import com.sun.istack.internal.NotNull;
+import network.exceptions.NetworkFailureException;
+import resource.ChordResource;
 
-import static utils.Util.*;
+import java.util.List;
 
-public class Node {
+/**
+ * Main abstraction of the concept of node as part of a Chord ring.
+ * This description models the fact that nodes might be not available, as well as
+ * the finger table not completely initialised yet.
+ * So every time this node is not available, this might be modeled using the {@link NetworkFailureException}
+ */
+public interface Node {
 
-    private final int id;
-    public FingerTableEntry[] fingerTable;
-    private Node predecessor;
+    /**
+     * It finds the node whose id is immediate succeeding the resource {@code id} in the chord ring.
+     * @param id the identifier of the resource to find (a node or a key)
+     * @return the reference of the node succeeding id.
+     * @throws NetworkFailureException when this node is not available to be contacted.
+     *                               Alternatively, when there is a cycle and the initial callee is encountered.
+     */
+    Node findSuccessor(int id) throws NetworkFailureException;
 
-    public Node(int id) {
-        this.id = id;
-        fingerTable = new FingerTableEntry[M];
-        for(int i=0; i<M; i++){
-            fingerTable[i] = new FingerTableEntry();
-            fingerTable[i].setStart(((this.id + ((int) Math.pow(2,i))) % ((int) Math.pow(2, M))));
-        }
-    }
+    /**
+     * Gets the node whose id is smaller then the current node.
+     * The result might not be always the true predecessor.
+     * For instance this happens when a new node joins the ring between the current node and its predecessor.
+     * Therefore this node cannot know it, until is not contacted.
+     * @return The reference of the node that precedes this one.
+     */
+    Node getPredecessor() throws NetworkFailureException;
 
-    public int getId() {
-        return id;
-    }
+    /**
+     * Gets the immediate successor node in the ring.
+     * @return the successor reference.
+     */
+    Node getSuccessor() throws NetworkFailureException;
 
-    public Node findSuccessor(int id){
-        Node n = findPredecessor(id);
-        return n.getSuccessor();
-    }
+    /**
+     * Passive semantics: node n might be the predecessor of this node.
+     * If so, set it in place of the current one.
+     * @param n the node pretending to be this node's predecessor.
+     * @throws NetworkFailureException when this node is not available to answer.
+     */
+    void notifyPredecessor(Node n) throws NetworkFailureException;
 
-    public Node findPredecessor(int id){
-        Node n = this;
-        while(!isInsideInterval(id, n.getId(), n.getSuccessor().getId()) && id != n.getSuccessor().getId())
-            n = n.closestPrecedingFinger(id);
-        return n;
-    }
+    List<Node> getSuccessorsList() throws NetworkFailureException;
 
-    public Node closestPrecedingFinger(int id) {
-        for(int i=M-1; i>=0; i--)
-            if(isInsideInterval(fingerTable[i].getNode().getId(),  this.getId(), id))
-                return fingerTable[i].getNode();
-        return this;
-    }
+    //TODO: Rivedere publish e fetch
+    void publish(ChordResource resource) throws NetworkFailureException;
 
-    public Node getSuccessor(){
-        return fingerTable[0].getNode();
-    }
-
-    public void join(@NotNull Node n){
-        initFingerTable(n);
-        updateOthers();
-    }
-
-    public void create(){
-        for(FingerTableEntry f : fingerTable)
-            f.setNode(this);
-        predecessor = this;
-    }
-
-    public void initFingerTable(Node n){
-        fingerTable[0].setNode(n.findSuccessor(fingerTable[0].getStart()));
-        predecessor = getSuccessor().getPredecessor();
-        getSuccessor().setPredecessor(this);
-        for(int i=1; i<M; i++){
-            if(isInsideInterval(fingerTable[i].getStart(), this.id, fingerTable[i-1].getNode().getId())
-                    || fingerTable[i].getStart() == this.id)
-                fingerTable[i].setNode(fingerTable[i-1].getNode());
-            else
-                fingerTable[i].setNode(n.findSuccessor(fingerTable[i].getStart()));
-        }
-    }
-
-    public void updateOthers(){
-        for(int i = 0; i<M; i++){
-            Node p = findPredecessor(((this.id-((int) Math.pow(2, i)) + ((int) Math.pow(2, M)))+1) % ((int) Math.pow(2, M)));
-            p.updateFingerTable(this, i);
-        }
-    }
-
-    public void updateFingerTable(Node s, int i) {
-        if(isInsideInterval(s.getId(), id, fingerTable[i].getNode().getId())
-               /* || s.getId() == id*/){
-            fingerTable[i].setNode(s);
-            Node p = predecessor;
-            p.updateFingerTable(s, i);
-        }
-    }
+    ChordResource fetch(String name) throws NetworkFailureException;
 
 
-    public Node getPredecessor() {
-        return predecessor;
-    }
+    /**
+     * Verifies whether this node is available
+     * @return true if the node is not available
+     */
+    boolean hasFailed() throws NetworkFailureException;
 
-    public void setPredecessor(Node n){
-        this.predecessor = n;
-    }
+    /**
+     * Gets the identifier of this node.
+     * @return this node's identifier.
+     */
+    int getId();
+
+    /**
+     * Gets the port of the node
+     * @return the node's socket port
+     */
+    int getPort();
+
+    /**
+     * Gets the ip address of the node
+     * @return the node's IP address
+     */
+    String getIp();
+
+    /**
+     * Closes the node communication.
+     * The node might get unavailable, check concrete implementation of this method
+     */
+    void close(); // TODO consider using AutoClosable interface
+
+    /**
+     * Wraps the current node. The node returned is semantically a copy
+     * such that it's safer to be returned externally of Node rather than <pre>this</pre>.
+     * @return the copy of this node
+     */
+    Node wrap();
 }
