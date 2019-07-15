@@ -406,6 +406,7 @@ public class LocalNode implements Node{
                 .append(": ");
         successorsList.forEach(s -> sb.append(s.getId()).append(','));
         sb.append("\nfinger table:\n").append(fingerTable.toString());
+        sb.append(resourceManager.toString());
         return sb.toString();
     }
 }

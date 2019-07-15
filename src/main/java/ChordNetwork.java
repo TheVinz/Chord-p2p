@@ -38,7 +38,7 @@ public class ChordNetwork {
 
         try {
             closed = false;
-            ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{1000, 1000});
+            ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{2000, 2000});
             node = Util.createDefaultStabilizerNode(nodeId, anchor, nodeHost, nodePort,
                     config.getRoutineDelays(), config.getRoutinePeriods(), resourceManager);
             node.start();
@@ -69,7 +69,7 @@ public class ChordNetwork {
 
         try {
             closed = false;
-            ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{1000, 1000});
+            ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{2000, 2000});
 
             node = createDefaultStabilizerNode(id, nodeHost, nodePort,
                     config.getRoutineDelays(), config.getRoutinePeriods(), resourceManager);

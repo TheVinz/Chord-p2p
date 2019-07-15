@@ -34,12 +34,19 @@ public class ResourceManager {
 
 
     public synchronized void moveResourcesToPredecessor(){
+        //System.out.println("mover");
         try {
             Node newPredecessor = node.getPredecessor();
-            List<ChordResource> temp = new ArrayList<>();
-            if (newPredecessor.getId() == predecessor.getId())
+            if(newPredecessor == null)
                 return;
-            if (isInsideInterval(newPredecessor.getId(), predecessor.getId(), node.getId())) {
+            List<ChordResource> temp = new ArrayList<>();
+            if (predecessor != null && newPredecessor.getId() == predecessor.getId())
+                return;
+            if(newPredecessor.getId() == node.getId()){
+                predecessor = node;
+                return;
+            }
+            if (predecessor == null || isInsideInterval(newPredecessor.getId(), predecessor.getId(), node.getId())) {
                 chordResourceList.forEach(x -> {
                     if (isInsideInterval(newPredecessor.getId(), x.getId(), node.getId())) {
                         temp.add(x);
@@ -47,6 +54,7 @@ public class ResourceManager {
                 });
                 temp.forEach(x -> {
                     try {
+                        //System.out.println("hereeeeee "+predecessor.getId());
                         newPredecessor.publish(x);
                         chordResourceList.remove(x);
                         replicasList.add(x);
@@ -58,15 +66,20 @@ public class ResourceManager {
                 //predecessor is failed
                 replicasList.forEach(x -> {
                     if (isInsideInterval( x.getId(), newPredecessor.getId(), node.getId()) && x.getId() != newPredecessor.getId()) {
-                        chordResourceList.add(x);
-                        replicasList.remove(x);
+                        temp.add(x);
                     }
+                });
+                temp.forEach(x -> {
+                    chordResourceList.add(x);
+                    replicasList.remove(x);
                 });
 
             }
+            predecessor = newPredecessor;
             }catch(NetworkFailureException e){
 
             }
+
 
     }
 
@@ -74,9 +87,17 @@ public class ResourceManager {
      * Propagate for consistency
      */
     public synchronized void propagateResources(){
+        //System.out.println("propagator");
         try {
-            List <Node> newSuccessorList = node.getSuccessorsList();
+            List <Node> newSuccessorList = getSuccessorList();
+            if(newSuccessorList == null)
+                return;
             newSuccessorList.add(0, node.getSuccessor());
+            cutSuccessorList(newSuccessorList);
+            /*newSuccessorList.forEach( x -> {
+                System.out.print(x.getId()+" ");
+            });*/
+            //System.out.print("\n");
             int j=0;
             int prec = node.getId();
             for(int i=0; i<newSuccessorList.size(); i++){
@@ -86,20 +107,26 @@ public class ResourceManager {
                         successorList.get(j).notifyDelete(x.getTitle());
                     j++;
                 }
-                if(successorList.get(j).getId() != newSuccessorList.get(i).getId()){
+                if(j >=successorList.size() || successorList.get(j).getId() != newSuccessorList.get(i).getId()){
                     //publish
+                    //System.out.println(successorList.get(j).getId() + " " + newSuccessorList.get(i).getId() );
                     for(ChordResource x : chordResourceList)
-                        successorList.get(i).sendReplica(x);
+                        moveReplica(newSuccessorList.get(i), x);
                 }
+
+                if(j < successorList.size() && successorList.get(j).getId() == newSuccessorList.get(i).getId())
+                    j++;
+
                 prec = newSuccessorList.get(i).getId();
             }
             while(j<successorList.size()){
                 for(ChordResource x : chordResourceList)
                     successorList.get(j).notifyDelete(x.getTitle());
+                j++;
             }
+            successorList = newSuccessorList;
         } catch (NetworkFailureException e) {
         }
-
     }
 
     public void start(){
@@ -142,11 +169,16 @@ public class ResourceManager {
     }
 
     public synchronized void addNewResource(ChordResource chordResource){
+        //System.out.println(chordResource.getContent());
         saveToFile(chordResource);
         chordResourceList.add(chordResource);
+        for(Node x: successorList) {
+            moveReplica(x, chordResource);
+        }
     }
 
     public synchronized void addReplica(ChordResource chordResource){
+        //System.out.println("new replicaaaa");
         saveToFile(chordResource);
         replicasList.add(chordResource);
 
@@ -175,7 +207,45 @@ public class ResourceManager {
     public void setNode(Node node)  throws NetworkFailureException{
         this.node = node;
         predecessor = node.getPredecessor();
-        successorList = node.getSuccessorsList();
+        successorList = getSuccessorList();
+        cutSuccessorList(successorList);
+
         start();
+    }
+
+    private List<Node> getSuccessorList() throws NetworkFailureException {
+        List<Node> temp = node.getSuccessorsList();
+        if(temp == null)
+            return new ArrayList<>();
+        return (List) ((ArrayList) temp).clone();
+    }
+
+    private void cutSuccessorList(List<Node> nodeList){
+        int i=0;
+        for(i=0; i<nodeList.size(); i++)
+            if(nodeList.get(i).getId() == node.getId())
+                break;
+        while(nodeList.size()>i)
+            nodeList.remove(i);
+
+    }
+
+    private void moveReplica(Node destination, ChordResource chordResource){
+        try {
+            if(!destination.notifyPropagation(chordResource.getTitle()))
+                destination.sendReplica(chordResource);
+        } catch (NetworkFailureException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public synchronized String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\nmyResources: ");
+        chordResourceList.forEach(s -> sb.append(s.getTitle()).append(','));
+        sb.append("\nmyReplicas: ");
+        replicasList.forEach(s -> sb.append(s.getTitle()).append(','));
+        return sb.toString();
     }
 }

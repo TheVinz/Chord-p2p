@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 public abstract class Util {
 
     public static final int M = 6;
-    public static final int R = 4;
+    public static final int R = 2;
     private static final Consumer<LocalNode> STABILIZER_ROUTINE = LocalNode::stabilize;
     private static final Consumer<LocalNode> FIX_FINGER_ROUTINE = LocalNode::fixFingers;
     private static final Consumer<LocalNode> CHECK_PREDECESSOR_ROUTINE = LocalNode::checkPredecessor;

@@ -14,7 +14,7 @@ public class ReplicaRequest extends RequestMessage {
 
     @Override
     public ReplyMessage handleRequest(LocalNode node) {
-        node.publish(resource);
+        node.sendReplica(resource);
         return null;
     }
 }
