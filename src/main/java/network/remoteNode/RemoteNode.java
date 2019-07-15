@@ -78,7 +78,12 @@ public class RemoteNode implements Node {
                 setUpConnection();
             RequestMessage msg = new GetPredecessorRequest();
             Request request = outputBuffer.sendRequest(msg);
-            NodeReply reply = (NodeReply) queue.submitRequest(request);
+            NodeReply reply = null;
+            try {
+                reply = (NodeReply) queue.submitRequest(request);
+            }catch (ClassCastException e){
+                return null;
+            }
             if(reply.isNotFound())
                 return null;
             else
@@ -113,7 +118,12 @@ public class RemoteNode implements Node {
             setUpConnection();
         RequestMessage msg = new SuccessorListRequest();
         Request request = outputBuffer.sendRequest(msg);
-        SuccessorListReply reply = (SuccessorListReply) queue.submitRequest(request);
+        SuccessorListReply reply = null;
+        try {
+            reply = (SuccessorListReply) queue.submitRequest(request);
+        }catch (ClassCastException e){
+            throw new NetworkFailureException();
+        }
         List<Node> successorsList = new ArrayList<>();
         for(int i=0; i<reply.getIds().size(); i++){
             Node remoteNode = new RemoteNode(reply.getIds().get(i), reply.getIps().get(i), reply.getPorts().get(i));

@@ -19,6 +19,8 @@ public class SuccessorListReply extends ReplyMessage{
         }
     }
 
+    public SuccessorListReply(){}
+
 
     public List<Integer> getIds() {
         return ids;
