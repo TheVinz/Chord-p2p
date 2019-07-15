@@ -1,1 +1,2 @@
-{"delay":false,"maxDelay":500,"requestTimeout":5000,"stabilizeDelay":500,"stabilizePeriod":250,"fixFingerDelay":800,"fixFingerPeriod":250,"checkPredecessorDelay":0,"checkPredecessorPeriod":100,"checkSuccessorDelay":100,"checkSuccessorPeriod":100}
+{"delay":true,"maxDelay":500,"requestTimeout":5000,"stabilizeDelay":500,"stabilizePeriod":1000,"fixFingerDelay":800,"fixFingerPeriod":1000,"checkPredecessorDelay":1000,"checkPredecessorPeriod":1000,"checkSuccessorDelay":1000,"checkSuccessorPeriod":1000,"loggingLevel":"FINE"}
+

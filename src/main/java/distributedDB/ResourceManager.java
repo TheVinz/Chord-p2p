@@ -123,9 +123,9 @@ public class ResourceManager {
     }
 
     public ChordResource getFile(String name) {
-        File file = new File("data/node_"+ node.getId() + "/" +name);
+        File file = new File("data/node_"+node.getId() + "/" +name);
         if(!file.exists())
-            return new ChordResource(name, "");
+            return new ChordResource(name);
         else{
             try(Scanner sc = new Scanner(new FileInputStream(file))) {
                 String content = sc.nextLine();
@@ -134,7 +134,7 @@ public class ResourceManager {
                 e.printStackTrace();
             }
         }
-        return new ChordResource(name, "");
+        return new ChordResource(name);
     }
 
     public void deleteFromFile(String name){

@@ -22,7 +22,7 @@ public class RemoteResource {
              return localNode.findSuccessor(id);
         } catch (NetworkFailureException e) {
             e.printStackTrace();
-            return find(); // TODO why loop?
+            return find();
         }
     }
 

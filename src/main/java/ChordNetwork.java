@@ -14,7 +14,10 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 import static utils.ResourceUtil.createDefaultResourceManager;
+import static utils.Util.calculateDigest;
+import static utils.Util.createDefaultStabilizerNode;
 
 public class ChordNetwork {
     private static final Logger LOGGER = Logger.getLogger(ChordNetwork.class.getSimpleName());
@@ -26,8 +29,8 @@ public class ChordNetwork {
 
     public void join(String anchorHost, int anchorPort, String nodeHost, int nodePort) {
         int anchorId, nodeId;
-        anchorId = Util.calculateDigest(anchorHost +":"+ anchorPort);
-        nodeId = Util.calculateDigest(nodeHost +":"+ nodePort);
+        anchorId = calculateDigest(anchorHost +":"+ anchorPort);
+        nodeId = calculateDigest(nodeHost +":"+ nodePort);
         System.out.println("id: " + nodeId);
 
         Node anchor = new RemoteNode(anchorId, anchorHost, anchorPort);
@@ -60,9 +63,30 @@ public class ChordNetwork {
         }
     }
 
+    public void create(String nodeHost, int nodePort) throws NetworkFailureException {
+        int id = calculateDigest(nodeHost + ":" + nodePort);
+        NetworkSettings config = SettingsManager.getNetworkSettings();
+
+        try {
+            closed = false;
+            ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{1000, 1000});
+
+            node = createDefaultStabilizerNode(id, nodeHost, nodePort,
+                    config.getRoutineDelays(), config.getRoutinePeriods(), resourceManager);
+            node.start();
+            server = new NodeServer(node, nodePort);
+            serverThread = new Thread(server::loop, "server loop");
+            serverThread.start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            prepareToExit();
+        }
+    }
+
     public void publish(String title, String content){
         try {
-            int id = Util.calculateDigest(title);
+            int id = calculateDigest(title);
             Node n = node.findSuccessor(id).wrap();
             n.publish(new ChordResource(title, content));
             n.close();
@@ -73,7 +97,7 @@ public class ChordNetwork {
 
     public RemoteResource find(String title){
         synchronized (this) {
-            int id = Util.calculateDigest(title);
+            int id = calculateDigest(title);
             return new RemoteResource(node, title, id);
         }
     }

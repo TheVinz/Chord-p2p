@@ -4,6 +4,7 @@ import distributedDB.ResourceManager;
 import network.exceptions.NetworkFailureException;
 import network.nodeServer.NodeServer;
 import node.StabilizerNode;
+import resource.ChordResource;
 import resource.RemoteResource;
 import utils.LogFormatter;
 import utils.NetworkSettings;
@@ -17,6 +18,8 @@ import java.util.logging.Level;
 
 import static utils.ResourceUtil.createDefaultResourceManager;
 import static utils.Util.createDefaultStabilizerNode;
+import java.util.Scanner;
+
 
 public class App {
 
@@ -45,20 +48,47 @@ public class App {
     @Parameter(names = {"--join", "-j"})
     private boolean join = false;
 
+
     private void run() throws NetworkFailureException {
+        ChordNetwork network = new ChordNetwork();
         if (join)
-            joinChordNetwork();
+            joinChordNetwork(network);
         else
-            startAnchorMode();
+            startAnchorMode(network);
+
+        evalInput(network);
     }
 
-    private void joinChordNetwork() {
-        System.out.println(nodePort);
-        LogFormatter.logSetup(Level.FINE);
-
-        ChordNetwork network = new ChordNetwork();
+    private void joinChordNetwork(ChordNetwork network) {
         network.join(anchorHost, anchorPort, nodeHost, nodePort);
+    }
 
+
+    private void startAnchorMode(ChordNetwork network) throws NetworkFailureException {
+        network.create(nodeHost, nodePort);
+    }
+
+    public static void main(String[] args) throws NetworkFailureException {
+        App app = new App();
+        JCommander parser = JCommander.newBuilder()
+                .addObject(app)
+                .build();
+
+        parser.parse(args);
+
+        if (app.help) {
+            parser.usage();
+            return;
+        }
+
+
+        NetworkSettings config = SettingsManager.getNetworkSettings();
+        LogFormatter.logSetup(config.getLoggingLevel());
+
+        app.run();
+    }
+
+    private static void evalInput(ChordNetwork network) {
         Scanner sc = new Scanner(System.in);
         while (!network.isClosed()) {
             String input = sc.next(), name, content;
@@ -71,7 +101,11 @@ public class App {
                 case "find":
                     name = sc.next();
                     RemoteResource remoteResource = network.find(name);
-                    System.out.println(remoteResource.fetch().getContent());
+                    ChordResource resource = remoteResource.fetch();
+                    if (resource.isNotFound())
+                        System.err.println("Resource [" + resource.getTitle() + "] not found.");
+                    else
+                        System.out.println(resource.getContent());
                     break;
                 case "dump":
                     network.dumpNode();
@@ -84,7 +118,7 @@ public class App {
         sc.close();
     }
 
-    private void startAnchorMode() throws NetworkFailureException {
+    /*private void startAnchorMode() throws NetworkFailureException {
         LogFormatter.logSetup(Level.FINER);
 
         int id = Util.calculateDigest(nodeHost + ":" + nodePort);
@@ -102,24 +136,6 @@ public class App {
         } finally {
             anchor.stop();
         }
-    }
+    }*/
 
-    public static void main(String[] args) {
-        App protocolMain = new App();
-        JCommander parser = JCommander.newBuilder()
-                .addObject(protocolMain)
-                .build();
-
-        parser.parse(args);
-
-        if (protocolMain.help) {
-            parser.usage();
-            return;
-        }
-        try {
-            protocolMain.run();
-        } catch (NetworkFailureException e) {
-            e.printStackTrace();
-        }
-    }
 }

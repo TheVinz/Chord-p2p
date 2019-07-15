@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.Random;
+import java.util.logging.Level;
 
 public class NetworkSettings {
 
@@ -15,6 +16,7 @@ public class NetworkSettings {
     private long checkPredecessorPeriod = 500;
     private long checkSuccessorDelay = 1000;
     private long checkSuccessorPeriod = 500;
+    private LoggingLevel loggingLevel = LoggingLevel.FINE;
 
 
     public boolean isDelay() {
@@ -78,5 +80,17 @@ public class NetworkSettings {
                 getCheckPredecessorPeriod(),
                 getCheckSuccessorPeriod()
         };
+    }
+
+    public Level getLoggingLevel() {
+        try {
+            return Level.parse(loggingLevel.name());
+        } catch (NullPointerException npe) {
+            return Level.FINE;
+        }
+    }
+
+    private enum LoggingLevel {
+        OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL,
     }
 }
