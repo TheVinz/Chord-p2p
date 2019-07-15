@@ -47,7 +47,6 @@ public interface Node {
 
     List<Node> getSuccessorsList() throws NetworkFailureException;
 
-    //TODO: Rivedere publish e fetch
     void publish(ChordResource resource) throws NetworkFailureException;
 
     ChordResource fetch(String name) throws NetworkFailureException;
@@ -81,7 +80,7 @@ public interface Node {
      * Closes the node communication.
      * The node might get unavailable, check concrete implementation of this method
      */
-    void close(); // TODO consider using AutoClosable interface
+    void close();
 
     /**
      * Wraps the current node. The node returned is semantically a copy

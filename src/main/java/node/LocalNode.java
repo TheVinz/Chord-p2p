@@ -27,7 +27,7 @@ public class LocalNode implements Node{
     public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_PORT = 8888;
     private FingerTable fingerTable;
-    private Node predecessor = this;// TODO: in the Paper is null
+    private Node predecessor = this;
     private final Object predecessor_lock = new Object();
     private int next = 0;
     private int id;
@@ -114,7 +114,6 @@ public class LocalNode implements Node{
             if (isInsideInterval(fingerTable.getNode(i).getId(), this.getId(), id))
                 return fingerTable.getNode(i);
         }
-        // TODO search in successor list as well (ref Paper)
         return this;
     }
 
@@ -234,7 +233,6 @@ public class LocalNode implements Node{
      * Stabilization procedures
      */
 
-    // TODO move externally stabilize, fixFingers and checkPredecessor
     public void stabilize(){
         Node x;
         try {
@@ -379,13 +377,13 @@ public class LocalNode implements Node{
     @Override
     public void close() {
         // do nothing when you close a local node
-        // TODO closing a localnode -> update observers?
+        // closing a localnode -> update observers?
     }
 
     @Override
     public Node wrap() {
         return this;
-        // TODO so far return this is enough. Consider copying it and cleaning observers, but leaving same fingerTable instance
+        // so far return this is enough. Consider copying it and cleaning observers, but leaving same fingerTable instance
     }
 
     @Override

@@ -46,7 +46,6 @@ public class RemoteNode implements Node {
             inputBuffer = new InputBuffer(ois, queue, this.id);
             closed = false;
         } catch (IOException e) {
-            // TODO: should manage close?
             close();
             throw new NetworkFailureException(e);
         }
@@ -148,7 +147,7 @@ public class RemoteNode implements Node {
         Request request = outputBuffer.sendRequest(msg);
         queue.submitRequest(request);
         if(request.isFailed())
-            throw new NetworkFailureException(); // TODO: I would just return true, why thr?
+            throw new NetworkFailureException();
         else
             return false;
     }
@@ -188,7 +187,7 @@ public class RemoteNode implements Node {
      */
     @Override
     public void close() {
-        try { // TODO the opposite try -- if
+        try {
             if (!closed) {
                 inputBuffer.close();
                 outputBuffer.close();
@@ -196,7 +195,6 @@ public class RemoteNode implements Node {
                 queue.close();
             }
         } catch (IOException e){
-            // TODO understand logging or re-throwing. What happen to the remaining unclosed?
             e.printStackTrace();
         } finally {
             closed = true;

@@ -110,7 +110,7 @@ public class ChordNetwork {
             if (node != null)
                 node.stop();
 
-            if (server != null) // TODO: message level lock to block message deliverie to application
+            if (server != null)
                 server.close();
 
             closed = true;
