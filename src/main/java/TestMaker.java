@@ -4,7 +4,7 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 
 public class TestMaker {
-    private static final int TEST_SIZE = 1000;
+    private static final int TEST_SIZE = 1;
 
     public static void main(String[] args){
         File file = new File("test/input" + TEST_SIZE + ".txt");

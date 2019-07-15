@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public class FingerTable {
 
-    // TODO use a synchronized structure because an update could happen during a request?
+    // maybe use a synchronized structure because an update could happen during a request?
     private FingerTableEntry[] entries = new FingerTableEntry[Util.M];
     private Node node;
 

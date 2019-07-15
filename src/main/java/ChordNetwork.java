@@ -1,3 +1,4 @@
+import distributedDB.ResourceManager;
 import network.exceptions.NetworkFailureException;
 import network.nodeServer.NodeServer;
 import network.remoteNode.RemoteNode;
@@ -10,12 +11,12 @@ import utils.SettingsManager;
 import utils.Util;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+import static utils.ResourceUtil.createDefaultResourceManager;
+import static utils.Util.calculateDigest;
 import static utils.Util.createDefaultStabilizerNode;
 
 public class ChordNetwork {
@@ -37,8 +38,9 @@ public class ChordNetwork {
 
         try {
             closed = false;
+            ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{2000, 2000});
             node = Util.createDefaultStabilizerNode(nodeId, anchor, nodeHost, nodePort,
-                    config.getRoutineDelays(), config.getRoutinePeriods());
+                    config.getRoutineDelays(), config.getRoutinePeriods(), resourceManager);
             node.start();
             server = new NodeServer(node, nodePort);
             serverThread = new Thread(server::loop, "server loop");
@@ -61,14 +63,16 @@ public class ChordNetwork {
         }
     }
 
-    public void create(String nodeHost, int nodePort) {
-        int id = ChordNetwork.calculateDigest(nodeHost + ":" + nodePort);
+    public void create(String nodeHost, int nodePort) throws NetworkFailureException {
+        int id = calculateDigest(nodeHost + ":" + nodePort);
         NetworkSettings config = SettingsManager.getNetworkSettings();
 
         try {
             closed = false;
+            ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{2000, 2000});
+
             node = createDefaultStabilizerNode(id, nodeHost, nodePort,
-                    config.getRoutineDelays(), config.getRoutinePeriods());
+                    config.getRoutineDelays(), config.getRoutinePeriods(), resourceManager);
             node.start();
             server = new NodeServer(node, nodePort);
             serverThread = new Thread(server::loop, "server loop");
@@ -99,20 +103,6 @@ public class ChordNetwork {
     }
 
 
-    public static int calculateDigest(String obj) {
-        int res, mod= (int) Math.pow(2, Util.M-1);
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException(e);
-        }
-        byte[] messageDigest = md.digest(obj.getBytes());
-        BigInteger no = new BigInteger(1, messageDigest);
-        res=no.intValue() % (mod-1) + mod-1;
-        return res;
-    }
-
     private void prepareToExit() {
         if(!closed) {
             serverThread = null;
@@ -120,7 +110,7 @@ public class ChordNetwork {
             if (node != null)
                 node.stop();
 
-            if (server != null) // TODO: message level lock to block message deliverie to application
+            if (server != null)
                 server.close();
 
             closed = true;

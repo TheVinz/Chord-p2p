@@ -1,10 +1,7 @@
 package network.remoteNode;
 
 import network.exceptions.NetworkFailureException;
-import network.message.reply.NodeReply;
-import network.message.reply.ReplyMessage;
-import network.message.reply.ResourceReply;
-import network.message.reply.SuccessorListReply;
+import network.message.reply.*;
 import network.message.request.*;
 import node.Node;
 import resource.ChordResource;
@@ -49,7 +46,6 @@ public class RemoteNode implements Node {
             inputBuffer = new InputBuffer(ois, queue, this.id);
             closed = false;
         } catch (IOException e) {
-            // TODO: should manage close?
             close();
             throw new NetworkFailureException(e);
         }
@@ -81,7 +77,12 @@ public class RemoteNode implements Node {
                 setUpConnection();
             RequestMessage msg = new GetPredecessorRequest();
             Request request = outputBuffer.sendRequest(msg);
-            NodeReply reply = (NodeReply) queue.submitRequest(request);
+            NodeReply reply = null;
+            try {
+                reply = (NodeReply) queue.submitRequest(request);
+            }catch (ClassCastException e){
+                return null;
+            }
             if(reply.isNotFound())
                 return null;
             else
@@ -116,7 +117,12 @@ public class RemoteNode implements Node {
             setUpConnection();
         RequestMessage msg = new SuccessorListRequest();
         Request request = outputBuffer.sendRequest(msg);
-        SuccessorListReply reply = (SuccessorListReply) queue.submitRequest(request);
+        SuccessorListReply reply = null;
+        try {
+            reply = (SuccessorListReply) queue.submitRequest(request);
+        }catch (ClassCastException e){
+            throw new NetworkFailureException();
+        }
         List<Node> successorsList = new ArrayList<>();
         for(int i=0; i<reply.getIds().size(); i++){
             Node remoteNode = new RemoteNode(reply.getIds().get(i), reply.getIps().get(i), reply.getPorts().get(i));
@@ -141,7 +147,7 @@ public class RemoteNode implements Node {
         Request request = outputBuffer.sendRequest(msg);
         queue.submitRequest(request);
         if(request.isFailed())
-            throw new NetworkFailureException(); // TODO: I would just return true, why thr?
+            throw new NetworkFailureException();
         else
             return false;
     }
@@ -181,7 +187,7 @@ public class RemoteNode implements Node {
      */
     @Override
     public void close() {
-        try { // TODO the opposite try -- if
+        try {
             if (!closed) {
                 inputBuffer.close();
                 outputBuffer.close();
@@ -189,7 +195,6 @@ public class RemoteNode implements Node {
                 queue.close();
             }
         } catch (IOException e){
-            // TODO understand logging or re-throwing. What happen to the remaining unclosed?
             e.printStackTrace();
         } finally {
             closed = true;
@@ -204,4 +209,33 @@ public class RemoteNode implements Node {
     public Node wrap() {
         return new RemoteNode(getId(), getIp(), getPort());
     }
+
+    @Override
+    public Boolean notifyPropagation(String title) throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        RequestMessage msg = new NotifyPropagationRequest(title);
+        Request request = outputBuffer.sendRequest(msg);
+        NotifyPropagationReply notifyPropagationReply = (NotifyPropagationReply) queue.submitRequest(request);
+        return notifyPropagationReply.isPresent();
+    }
+
+    @Override
+    public void notifyDelete(String title) throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        DeleteRequest msg = new DeleteRequest(title);
+        outputBuffer.sendRequest(msg);
+
+    }
+
+    @Override
+    public void sendReplica(ChordResource chordResource) throws NetworkFailureException {
+        if(closed)
+            setUpConnection();
+        ReplicaRequest msg = new ReplicaRequest(chordResource);
+        outputBuffer.sendRequest(msg);
+    }
+
+
 }

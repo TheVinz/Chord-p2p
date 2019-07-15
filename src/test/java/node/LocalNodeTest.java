@@ -17,8 +17,10 @@ class LocalNodeTest {
      * Instead, the predecessor does not exists yet
      */
     @Test
-    void testCreateSelfLink() {
-        LocalNode ln = new LocalNode(0);
+    void testCreateSelfLink() throws NetworkFailureException {
+        LocalNode ln = new LocalNode(0, null);
+
+
         Executable[] asserts = new Executable[Util.M];
 
         for (int i = 0; i < Util.M; i++) {
@@ -35,9 +37,9 @@ class LocalNodeTest {
      * The predecessor is still not initialized yet.
      */
     @Test
-    void testJoinSuccessorOneNode() {
-        LocalNode a = new LocalNode(0);
-        LocalNode b = assertDoesNotThrow(() -> new LocalNode(5, a));
+    void testJoinSuccessorOneNode() throws NetworkFailureException {
+        LocalNode a = new LocalNode(0, null);
+        LocalNode b = assertDoesNotThrow(() -> new LocalNode(5, a, null));
         // TODO: assertNull(b.getPredecessor());
         Node bSucc = null;
         try {
@@ -54,9 +56,9 @@ class LocalNodeTest {
      * (Indirectly it tests the {@link LocalNode#notifyPredecessor(Node)} as well)
      */
     @Test
-    void testStabilization2Nodes() {
-        LocalNode a = new LocalNode(0);
-        LocalNode b = assertDoesNotThrow(() -> new LocalNode(5, a)); // b.successor = a
+    void testStabilization2Nodes() throws NetworkFailureException {
+        LocalNode a = new LocalNode(0, null);
+        LocalNode b = assertDoesNotThrow(() -> new LocalNode(5, a, null)); // b.successor = a
 
         // Recreate a stable state
 
@@ -65,7 +67,7 @@ class LocalNodeTest {
         b.setPredecessor(a);
 
         // x join, then ring unstable
-        LocalNode x = assertDoesNotThrow(() -> new LocalNode(3, a)); // x.successor = 5
+        LocalNode x = assertDoesNotThrow(() -> new LocalNode(3, a, null)); // x.successor = 5
 
         x.stabilize(); // fix b's predecessor through notify
         a.stabilize(); // fix a's successor + x's predecessor through notify

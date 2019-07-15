@@ -25,8 +25,6 @@ class OutputBuffer {
         try {
             oos.writeObject(msg);
         } catch (IOException e) {
-            //e.printStackTrace();
-            //TODO close the connection
             close();
             throw new NetworkFailureException();
         }

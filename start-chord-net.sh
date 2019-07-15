@@ -69,7 +69,7 @@ then
     while [[ ${i} -lt ${number_node} ]]
     do
         tmux select-pane -t "$i"
-        port_i=$((i+9000))
+        port_i=$((i+9010))
         tmux send-keys "java -jar $jar_file --join --anchor-host $anchor_ip --anchor-port 8888 --local-host $my_ip --local-port $port_i" C-m
         sleep 4
         i=$((i+1))

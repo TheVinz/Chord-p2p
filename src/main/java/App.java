@@ -1,12 +1,25 @@
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import distributedDB.ResourceManager;
+import network.exceptions.NetworkFailureException;
+import network.nodeServer.NodeServer;
+import node.StabilizerNode;
 import resource.ChordResource;
 import resource.RemoteResource;
 import utils.LogFormatter;
 import utils.NetworkSettings;
 import utils.SettingsManager;
+import utils.Util;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.logging.Level;
+
+import static utils.ResourceUtil.createDefaultResourceManager;
+import static utils.Util.createDefaultStabilizerNode;
+import java.util.Scanner;
+
 
 public class App {
 
@@ -35,9 +48,9 @@ public class App {
     @Parameter(names = {"--join", "-j"})
     private boolean join = false;
 
-    private void run() {
-        ChordNetwork network = new ChordNetwork();
 
+    private void run() throws NetworkFailureException {
+        ChordNetwork network = new ChordNetwork();
         if (join)
             joinChordNetwork(network);
         else
@@ -51,11 +64,11 @@ public class App {
     }
 
 
-    private void startAnchorMode(ChordNetwork network) {
+    private void startAnchorMode(ChordNetwork network) throws NetworkFailureException {
         network.create(nodeHost, nodePort);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NetworkFailureException {
         App app = new App();
         JCommander parser = JCommander.newBuilder()
                 .addObject(app)
@@ -104,4 +117,25 @@ public class App {
 
         sc.close();
     }
+
+    /*private void startAnchorMode() throws NetworkFailureException {
+        LogFormatter.logSetup(Level.FINER);
+
+        int id = Util.calculateDigest(nodeHost + ":" + nodePort);
+        NetworkSettings config = SettingsManager.getNetworkSettings();
+
+        ResourceManager resourceManager = createDefaultResourceManager(new long[]{1000, 1000}, new long[]{1000, 1000});
+
+        StabilizerNode anchor = createDefaultStabilizerNode(id, nodeHost, nodePort,
+                        config.getRoutineDelays(), config.getRoutinePeriods(), resourceManager);
+        anchor.start();
+        try(NodeServer server = new NodeServer(anchor, nodePort)) {
+            server.loop();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            anchor.stop();
+        }
+    }*/
+
 }
