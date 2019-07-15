@@ -1,5 +1,6 @@
 package node;
 
+import network.exceptions.NetworkFailureException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import utils.Util;
@@ -19,12 +20,10 @@ class LocalNodeTest {
     void testCreateSelfLink() {
         LocalNode ln = new LocalNode(0);
         Executable[] asserts = new Executable[Util.M];
-        CallTracker ct = new CallTracker(0, 0);
-        ln.create();
 
         for (int i = 0; i < Util.M; i++) {
             int finalI = i;
-            asserts[finalI] = () -> assertEquals(ln, ln.findSuccessor(finalI, ct));
+            asserts[finalI] = () -> assertEquals(ln, ln.findSuccessor(finalI));
         }
         // TODO: asserts[Util.M] = () -> assertNull(ln.getPredecessor());
 
@@ -38,12 +37,15 @@ class LocalNodeTest {
     @Test
     void testJoinSuccessorOneNode() {
         LocalNode a = new LocalNode(0);
-        LocalNode b = new LocalNode(5);
-
-        a.create();
-        assertDoesNotThrow(() -> b.join(a));
+        LocalNode b = assertDoesNotThrow(() -> new LocalNode(5, a));
         // TODO: assertNull(b.getPredecessor());
-        assertEquals(a, b.getSuccessor());
+        Node bSucc = null;
+        try {
+            bSucc = b.getSuccessor();
+        } catch (NetworkFailureException e) {
+            e.printStackTrace();
+        }
+        assertEquals(a, bSucc);
     }
 
     /**
@@ -54,19 +56,16 @@ class LocalNodeTest {
     @Test
     void testStabilization2Nodes() {
         LocalNode a = new LocalNode(0);
-        LocalNode b = new LocalNode(5);
-        LocalNode x = new LocalNode(3);
-
-        a.create();
-        assertDoesNotThrow(() -> b.join(a)); // b.successor = a
+        LocalNode b = assertDoesNotThrow(() -> new LocalNode(5, a)); // b.successor = a
 
         // Recreate a stable state
+
         a.setPredecessor(b);
         a.setSuccessor(b);
         b.setPredecessor(a);
 
         // x join, then ring unstable
-        assertDoesNotThrow(() -> x.join(b)); // x.successor = 5
+        LocalNode x = assertDoesNotThrow(() -> new LocalNode(3, a)); // x.successor = 5
 
         x.stabilize(); // fix b's predecessor through notify
         a.stabilize(); // fix a's successor + x's predecessor through notify

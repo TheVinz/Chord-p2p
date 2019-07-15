@@ -1,19 +1,21 @@
 package network.remoteNode;
 
-import network.message.ReplyMessage;
+import network.message.reply.ReplyMessage;
+
+import java.util.Calendar;
+
 
 class Request {
-
-    private static final long REQUEST_TIMEOUT=5000L;
 
     private final int requestId;
     private ReplyMessage replyMessage=null;
     private boolean done=false;
     private boolean failed=false;
+    private final long timestamp;
 
     Request(int requestId){
         this.requestId=requestId;
-        new Thread(this::timer).start();
+        timestamp=Calendar.getInstance().getTimeInMillis();
     }
 
     int getRequestId() {
@@ -23,13 +25,10 @@ class Request {
     synchronized void setReplyMessage(ReplyMessage replyMessage) {
         if(!done) {
             this.replyMessage = replyMessage;
-            this.done = true;
+            setDone();
+            //timeout.interrupt();
             notifyAll();
         }
-    }
-
-    boolean isDone() {
-        return done;
     }
 
     boolean isFailed() {
@@ -40,12 +39,16 @@ class Request {
         return replyMessage;
     }
 
-    private synchronized void delete(){
+    synchronized void delete(){
         if(!done) {
             this.failed = true;
-            this.done = true;
+            setDone();
             notifyAll();
         }
+    }
+
+    private void setDone() {
+        this.done=true;
     }
 
     synchronized void waitingLoop() throws InterruptedException {
@@ -54,13 +57,7 @@ class Request {
         }
     }
 
-    private void timer(){
-        try {
-            Thread.sleep(REQUEST_TIMEOUT);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        delete();
+    public long getTimestamp() {
+        return timestamp;
     }
 }

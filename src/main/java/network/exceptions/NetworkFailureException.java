@@ -1,4 +1,4 @@
-package network.exeptions;
+package network.exceptions;
 
 public class NetworkFailureException extends Throwable {
     private String message;
@@ -9,6 +9,14 @@ public class NetworkFailureException extends Throwable {
 
     public NetworkFailureException(String message){
         this.message=message;
+    }
+
+    public NetworkFailureException(Exception e) {
+        super(e);
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     @Override

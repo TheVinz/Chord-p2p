@@ -1,33 +1,32 @@
 package network.remoteNode;
 
-import network.message.Message;
-import network.message.ReplyMessage;
+import network.message.reply.ReplyMessage;
 
 import java.io.*;
-import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
-class InputBuffer implements Closeable {
+class InputBuffer {
 
     private final PendingRequestQueue queue;
+    private final ExecutorService pool;
     private boolean closed=false;
+    private final int id;
 
-    InputBuffer(Socket socket, PendingRequestQueue queue) throws IOException {
+    InputBuffer(ObjectInputStream ois, PendingRequestQueue queue, int id) {
         this.queue=queue;
-        ObjectInputStream ois=new ObjectInputStream(socket.getInputStream());
-        new Thread(() -> loop(ois)).start();
+        this.id = id;
+        pool = Executors.newSingleThreadExecutor();
+        pool.submit(() -> loop(ois));
     }
 
     private void loop(ObjectInputStream ois){
+        Thread.currentThread().setName("Node " + id + " input stream");
         try {
             while (!closed) {
-                Message in = (Message) ois.readObject();
-                if (in.getClass() == ReplyMessage.class) {
-                    queue.handleReplyMessage((ReplyMessage) in);
-                } else {
-                    //TODO: verificare che effettivamente questa cosa non succede mai
-                    System.err.println("Questa cosa in teoria non dovrebbe succedere\nBy Vinz\nScottigay");
-                }
+                ReplyMessage in = (ReplyMessage) ois.readObject();
+                queue.handleReplyMessage(in);
             }
         } catch (IOException e) {
             close();
@@ -38,6 +37,8 @@ class InputBuffer implements Closeable {
     }
 
     public void close() {
+        queue.close();
+        pool.shutdown();
         closed=true;
     }
 }

@@ -1,115 +1,96 @@
 package network.nodeServer;
 
-import network.exeptions.NetworkFailureException;
-import network.message.Message;
-import network.message.ReplyMessage;
-import network.message.RequestMessage;
-import network.remoteNode.RemoteNode;
-import node.Node;
-import node.exceptions.FingerTableEmptyException;
-import node.exceptions.NodeNotFoundException;
+import network.message.reply.ReplyMessage;
+import network.message.request.RequestMessage;
+import node.LocalNode;
+import utils.NetworkSettings;
+import utils.SettingsManager;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class ConnectionHandler implements Closeable {
+
+    private static final Logger LOGGER = Logger.getLogger(ConnectionHandler.class.getSimpleName());
 
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private final Socket socket;
-    private final Node localNode;
+    private final LocalNode localNode;
+    private final ExecutorService pool;
     private boolean closed=false;
 
-    ConnectionHandler(Socket socket, Node localNode) {
-        this.socket=socket;
-        this.localNode=localNode;
-        try{
-            ois = new ObjectInputStream(socket.getInputStream());
-            oos = new ObjectOutputStream(socket.getOutputStream());
-        } catch (IOException e) {
-            try {
-                close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-            closed=true;
-        }
+    private NetworkSettings networkSettings = SettingsManager.getNetworkSettings();
+
+    ConnectionHandler(Socket socket, LocalNode localNode) throws IOException {
+        this.socket = socket;
+        this.localNode = localNode;
+        oos = new ObjectOutputStream(socket.getOutputStream());
+        ois = new ObjectInputStream(socket.getInputStream());
+        pool = Executors.newFixedThreadPool(20);
     }
 
     void handle(){
         try {
             while (!closed) {
-                Message in = (Message) ois.readObject();
-                if(in.getClass()==RequestMessage.class){
-                    new Thread(
-                            () -> handleRequest((RequestMessage) in)
-                    ).start();
-                }
-                else {
-                    //TODO: verificare che effettivamente questa cosa non succede mai
-                    System.err.println("Questa cosa in teoria non dovrebbe succedere\nBy Vinz\nScottigay");
-                }
+                RequestMessage in = (RequestMessage) ois.readObject();
+                //LOGGER.log(Level.FINER, "New message in: {0}", in.getClass().getSimpleName());
+
+                pool.submit(() -> handleRequest(in));
             }
-        } catch (IOException e) {
-            try {
-                close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+        } catch (IOException e){
+            close();
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING,
+                    "Unrecognised object was sent. Objects must be `RequestMessage`", e);
         }
     }
 
     private void handleRequest(RequestMessage msg) {
         try {
-            Node node;
-            ReplyMessage reply;
-            switch (msg.method) {
-                case Message.FIND_SUCCESSOR:
-                    node = localNode.findSuccessor(msg.id, null);
-                    reply = new ReplyMessage(msg.method, node.getIp(), node.getPort(), node.getId());
-                    reply.setRequestId(msg.getRequestId());
-                    oos.writeObject(reply);
-                    break;
-                case Message.GET_PREDECESSOR:
-                    node=localNode.getPredecessor();
-                    reply = new ReplyMessage(msg.method, node.getIp(), node.getPort(), node.getId());
-                    reply.setRequestId(msg.getRequestId());
-                    oos.writeObject(reply);
-                    break;
-                case Message.GET_SUCCESSOR:
-                    node = localNode.getSuccessor();
-                    reply = new ReplyMessage(msg.method, node.getIp(), node.getPort(), node.getId());
-                    reply.setRequestId(msg.getRequestId());
-                    oos.writeObject(reply);
-                    break;
-                case Message.NOTIFY_PREDECESSOR:
-                    //TODO: Ricordarsi di aprire la connessione con il remote node o qui o nel localNode
-                    node = new RemoteNode(msg.id, msg.ip, msg.port);
-                    localNode.notifyPredecessor(node);
-                    break;
+            if(networkSettings.isDelay()) {
+                Thread.sleep(networkSettings.getDelay());
             }
-        } catch (NodeNotFoundException e) {
-            e.printStackTrace();
-        } catch (FingerTableEmptyException e) {
-            e.printStackTrace();
-        } catch (NetworkFailureException e) {
-            //TODO: La NetworkFailureException non dovrebbe essere mai lanciata dal localNode
-            e.printStackTrace();
+            ReplyMessage reply = msg.handleRequest(localNode);
+            if(reply==null)
+                return;
+            reply.setRequestId(msg.getRequestId());
+            synchronized (this) {
+                oos.writeObject(reply);
+                oos.flush();
+            }
         } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "Troubles in sending out the reply: ", e.getMessage());
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void close() throws IOException {
-        ois.close();
-        oos.close();
-        socket.close();
-        closed=true;
+    public void close() {
+        if (!closed) {
+            String
+                    addr = socket.getRemoteSocketAddress().toString(),
+                    port = String.valueOf(socket.getPort());
+            try {
+                ois.close();
+                oos.close();
+                socket.close();
+                LOGGER.log(Level.FINE, "Connection {0}:{1} in closed",
+                        new Object[]{addr, port});
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Trouble in closing the socket", e);
+            } finally {
+                closed = true;
+                pool.shutdown();
+            }
+        }
     }
 }

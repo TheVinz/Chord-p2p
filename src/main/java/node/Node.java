@@ -1,29 +1,26 @@
 package node;
 
-import network.exeptions.NetworkFailureException;
-import node.exceptions.FingerTableEmptyException;
-import node.exceptions.NodeNotFoundException;
+import network.exceptions.NetworkFailureException;
+import resource.ChordResource;
+
+import java.util.List;
 
 /**
  * Main abstraction of the concept of node as part of a Chord ring.
  * This description models the fact that nodes might be not available, as well as
  * the finger table not completely initialised yet.
- * So every time this node is not available, this might be modeled using the {@link NodeNotFoundException}
+ * So every time this node is not available, this might be modeled using the {@link NetworkFailureException}
  */
 public interface Node {
 
     /**
      * It finds the node whose id is immediate succeeding the resource {@code id} in the chord ring.
      * @param id the identifier of the resource to find (a node or a key)
-     * @param callTracker some information to track the initial callee.
-     *                    This information just need to be forwarded each call.
-     *                    At the same time is used to check whether there is a cycle in the calls.
      * @return the reference of the node succeeding id.
-     * @throws NodeNotFoundException when this node is not available to be contacted.
+     * @throws NetworkFailureException when this node is not available to be contacted.
      *                               Alternatively, when there is a cycle and the initial callee is encountered.
-     * @throws FingerTableEmptyException when the finger table entry that captures the param id is not initialised yet.
      */
-    Node findSuccessor(int id, CallTracker callTracker) throws NodeNotFoundException, FingerTableEmptyException, NetworkFailureException;
+    Node findSuccessor(int id) throws NetworkFailureException;
 
     /**
      * Gets the node whose id is smaller then the current node.
@@ -31,24 +28,36 @@ public interface Node {
      * For instance this happens when a new node joins the ring between the current node and its predecessor.
      * Therefore this node cannot know it, until is not contacted.
      * @return The reference of the node that precedes this one.
-     * @throws NodeNotFoundException when this node is not available to be contacted.
      */
-    Node getPredecessor() throws NodeNotFoundException, NetworkFailureException;
+    Node getPredecessor() throws NetworkFailureException;
 
     /**
      * Gets the immediate successor node in the ring.
      * @return the successor reference.
-     * @throws NodeNotFoundException when this node is not available to answer
      */
-    Node getSuccessor() throws NodeNotFoundException, NetworkFailureException;
+    Node getSuccessor() throws NetworkFailureException;
 
     /**
      * Passive semantics: node n might be the predecessor of this node.
      * If so, set it in place of the current one.
      * @param n the node pretending to be this node's predecessor.
-     * @throws NodeNotFoundException when this node is not available to answer.
+     * @throws NetworkFailureException when this node is not available to answer.
      */
-    void notifyPredecessor(Node n) throws NodeNotFoundException, NetworkFailureException;
+    void notifyPredecessor(Node n) throws NetworkFailureException;
+
+    List<Node> getSuccessorsList() throws NetworkFailureException;
+
+    //TODO: Rivedere publish e fetch
+    void publish(ChordResource resource) throws NetworkFailureException;
+
+    ChordResource fetch(String name) throws NetworkFailureException;
+
+
+    /**
+     * Verifies whether this node is available
+     * @return true if the node is not available
+     */
+    boolean hasFailed() throws NetworkFailureException;
 
     /**
      * Gets the identifier of this node.
@@ -67,4 +76,17 @@ public interface Node {
      * @return the node's IP address
      */
     String getIp();
+
+    /**
+     * Closes the node communication.
+     * The node might get unavailable, check concrete implementation of this method
+     */
+    void close(); // TODO consider using AutoClosable interface
+
+    /**
+     * Wraps the current node. The node returned is semantically a copy
+     * such that it's safer to be returned externally of Node rather than <pre>this</pre>.
+     * @return the copy of this node
+     */
+    Node wrap();
 }
